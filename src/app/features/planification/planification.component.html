@@ -1,0 +1,46 @@
+<div class="space-y-8">
+  <div class="flex flex-col md:flex-row justify-between md:items-center gap-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900 tracking-tight">
+        {{ meta().title }}
+      </h1>
+      <p class="text-sm text-gray-500">
+        Planifiez les taches et les ressources.
+      </p>
+    </div>
+    <div class="flex flex-wrap items-center gap-3">
+      <button
+        mat-stroked-button
+        class="!rounded-2xl !border-slate-200 !text-slate-600 !py-4 !px-5 !mb-1 bg-white shadow-sm"
+      >
+        <mat-icon class="mr-2">upload_file</mat-icon>
+        Importer
+      </button>
+      <button
+        mat-stroked-button
+        class="!rounded-2xl !border-slate-200 !text-slate-600 !py-4 !px-5 !mb-1 bg-white shadow-sm"
+      >
+        <mat-icon class="mr-2">file_download</mat-icon>
+        Exporter
+      </button>
+      <button
+        mat-stroked-button
+        class="!rounded-2xl !border-slate-200 !text-slate-600 !py-4 !px-5 !mb-1 bg-white shadow-sm"
+      >
+        <mat-icon class="mr-2">download</mat-icon>
+        Télécharger modèle
+      </button>
+      <button
+        mat-flat-button
+        color="primary"
+        class="!rounded-2xl !px-6 !py-4 !mb-1 shadow-xl shadow-indigo-200"
+        [routerLink]="[createRoute()]"
+      >
+        <mat-icon class="mr-2">add_task</mat-icon>
+        {{ meta().createLabel }}
+      </button>
+    </div>
+  </div>
+
+  <app-planification-list [type]="type()"></app-planification-list>
+</div>

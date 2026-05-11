@@ -1,0 +1,27 @@
+<div class="atypical-form-shell">
+  <div class="atypical-form-header">
+    <div class="flex items-center gap-4">
+      <button
+        mat-icon-button
+        type="button"
+        class="!bg-white shadow-sm hover:shadow-md transition-shadow !rounded-md"
+        (click)="onCancel()"
+      >
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div>
+        <h1 class="atypical-form-title">{{ pageTitle }}</h1>
+        <p class="atypical-form-subtitle">{{ pageSubtitle }}</p>
+      </div>
+    </div>
+  </div>
+
+  <app-planification-form
+    [planningType]="taskType"
+    [initialTask]="initialTask"
+    [loading]="loading()"
+    (saveTask)="onSave($event)"
+    (close)="onCancel()"
+  >
+  </app-planification-form>
+</div>

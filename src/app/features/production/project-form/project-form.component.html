@@ -1,0 +1,115 @@
+<div class="atypical-form-shell !py-6 md:!py-8">
+  <div class="atypical-form-header">
+    <div class="flex items-center gap-4">
+      <button
+        mat-icon-button
+        type="button"
+        (click)="onCancel()"
+        class="!bg-white shadow-sm hover:shadow-md transition-shadow !rounded-md"
+      >
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+
+      <div>
+        <h1 class="atypical-form-title">
+          {{ isEdit ? "Modifier" : "Nouveau" }} {{ typeLabel }}
+        </h1>
+
+        <p class="atypical-form-subtitle">
+          Libellé, description<span *ngIf="data.type === 'PROJECT'">, TPM et ressources</span>
+          <span *ngIf="isAuditOrVeille()"> et ressource</span>.
+        </p>
+
+        <div class="atypical-section-band mt-3"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="atypical-form-card">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-8">
+      <div class="atypical-section">
+        <h3 class="atypical-section-title">Informations</h3>
+
+        <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+          <div matPrefix class="ng-field-segmented__prefix">
+            <mat-icon>title</mat-icon>
+            <span>Libellé<span class="ng-field-segmented__req">*</span></span>
+          </div>
+          <input matInput formControlName="libelle" placeholder="Ex. titre" aria-label="Libellé" />
+        </mat-form-field>
+
+        <mat-form-field
+          appearance="fill"
+          class="w-full ng-field-segmented ng-field-segmented--textarea mt-4"
+        >
+          <div matPrefix class="ng-field-segmented__prefix">
+            <mat-icon>notes</mat-icon>
+            <span>Description</span>
+          </div>
+          <textarea
+            matInput
+            rows="3"
+            formControlName="description"
+            autocomplete="off"
+            aria-label="Description"
+          ></textarea>
+        </mat-form-field>
+      </div>
+
+      <div class="atypical-section" *ngIf="isAuditOrVeille()">
+        <h3 class="atypical-section-title">Ressource</h3>
+        <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+          <div matPrefix class="ng-field-segmented__prefix">
+            <mat-icon>person</mat-icon>
+            <span>Ressource<span class="ng-field-segmented__req">*</span></span>
+          </div>
+          <mat-select formControlName="resourceUser" aria-label="Ressource">
+            <mat-option *ngFor="let u of users()" [value]="u.id">{{ u.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="atypical-section" *ngIf="data.type === 'PROJECT'">
+        <h3 class="atypical-section-title">Équipe projet</h3>
+        <div class="atypical-input-grid">
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>supervisor_account</mat-icon>
+              <span>TPM</span>
+            </div>
+            <mat-select formControlName="tpm" aria-label="TPM">
+              <mat-option value="">— Non défini —</mat-option>
+              <mat-option *ngFor="let u of users()" [value]="u.id">{{ u.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>groups</mat-icon>
+              <span>Ressources</span>
+            </div>
+            <mat-select formControlName="resources" multiple aria-label="Ressources">
+              <mat-option *ngFor="let u of users()" [value]="u.id">{{ u.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="atypical-form-actions">
+        <button type="button" mat-button (click)="onCancel()" [disabled]="loading()" class="!px-8 !py-6">
+          Annuler
+        </button>
+        <button
+          type="submit"
+          mat-flat-button
+          color="primary"
+          [disabled]="form.invalid"
+          [appBtnLoading]="loading()"
+          class="!px-12 !py-6 shadow-lg shadow-primary/20"
+        >
+          {{ isEdit ? "Enregistrer" : "Créer" }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

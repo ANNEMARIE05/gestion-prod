@@ -1,0 +1,443 @@
+<ng-container *ngIf="task as t; else missingTask">
+  <div class="atypical-form-shell">
+    <div class="atypical-form-header">
+      <div class="flex items-start gap-4 min-w-0 flex-1">
+        <button
+          mat-icon-button
+          type="button"
+          [routerLink]="backRoute"
+          class="!bg-white shadow-sm hover:shadow-md transition-shadow !rounded-md mt-1 flex-shrink-0"
+        >
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <div class="min-w-0">
+          <h1 class="atypical-form-title m-0">
+            {{
+              t.type === "AUDIT"
+                ? t.equipmentId || t.projectLabel
+                : t.type === "ENGINEERING"
+                  ? t.identification || t.projectLabel
+                  : t.projectLabel
+            }}
+          </h1>
+          <p class="atypical-form-subtitle m-0 mt-1">{{ typeLabel(t.type) }}</p>
+          @if (t.type === "AUDIT") {
+            <p class="text-sm text-gray-600 m-0 mt-2">{{ t.projectLabel }}</p>
+          }
+          @if (t.type === "ENGINEERING") {
+            <p class="text-sm text-gray-600 m-0 mt-2">
+              {{ t.watchLabel || t.projectLabel }}
+            </p>
+          }
+          <div class="atypical-section-band mt-3"></div>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-2 justify-end">
+        <button
+          mat-stroked-button
+          type="button"
+          class="!rounded-md !border-gray-200"
+          [routerLink]="['/planification/edit', t.id]"
+        >
+          <mat-icon class="mr-2">edit</mat-icon>
+          Modifier
+        </button>
+      </div>
+    </div>
+
+    <div class="atypical-form-card space-y-8">
+      @if (t.type === "AUDIT") {
+        <div class="atypical-section">
+          <h3 class="atypical-section-title">Jalon</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Jalon</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ t.jalonLabel || "-" }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Sous-jalon</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ t.subJalonLabel || "-" }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="atypical-section">
+          <h3 class="atypical-section-title">Equipement audite</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">ID equipement</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ t.equipmentId || "-" }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Audit (production)</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ t.projectLabel || "-" }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Specialite</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ t.specialtyLabel || "-" }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Type d equipement</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ equipmentTypeLabel(t.equipmentType) }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Localisation</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ locationTypeLabel(t.locationType) }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">
+                Utilisateur ou service affecte (ressource)
+              </p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ resourceAffectedLabel(t) }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Identifiant / Nom</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ t.equipmentIdentifier || "-" }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Date de mise en service</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{
+                  t.commissioningDate
+                    ? (t.commissioningDate | date: "dd/MM/yyyy")
+                    : "-"
+                }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Etat</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ equipmentStateLabel(t.equipmentState) }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">
+                Dernier entretien / verification
+              </p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{
+                  t.lastMaintenanceDate
+                    ? (t.lastMaintenanceDate | date: "dd/MM/yyyy")
+                    : "-"
+                }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Prochaine maintenance</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{
+                  t.nextMaintenanceDate
+                    ? (t.nextMaintenanceDate | date: "dd/MM/yyyy")
+                    : "-"
+                }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Echeance de garantie</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{
+                  t.warrantyDeadline
+                    ? (t.warrantyDeadline | date: "dd/MM/yyyy")
+                    : "-"
+                }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Licence</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ licenseStatusLabel(t.licenseStatus) }}
+              </p>
+            </div>
+          </div>
+          <div class="atypical-soft-block p-4 mt-4">
+            <p class="text-xs text-gray-500 m-0">Remarques</p>
+            <p class="text-sm text-gray-900 m-0 mt-1">
+              {{ t.auditRemarks || "-" }}
+            </p>
+          </div>
+        </div>
+      } @else if (t.type === "ENGINEERING") {
+        <div class="atypical-section">
+          <h3 class="atypical-section-title">Veille et decouverte</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Thematique</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ topicLabel(t.topic) }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Source</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ sourceLabel(t.source) }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Veille</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ t.watchLabel || t.projectLabel || "-" }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Specialite</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ t.specialtyLabel || "-" }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">
+                Date de veille / decouverte
+              </p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{
+                  t.discoveryDate
+                    ? (t.discoveryDate | date: "dd/MM/yyyy")
+                    : (t.startDate | date: "dd/MM/yyyy")
+                }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Niveau de maturite</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ maturityLevelLabel(t.maturityLevel) }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Impact potentiel</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ potentialImpactLabel(t.potentialImpact) }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Jalon</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ t.jalonLabel || "-" }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Sous-jalon</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ t.subJalonLabel || "-" }}
+              </p>
+            </div>
+            @if (t.applicationLabel) {
+              <div class="atypical-soft-block p-4">
+                <p class="text-xs text-gray-500 m-0">Application</p>
+                <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                  {{ t.applicationLabel }}
+                </p>
+              </div>
+            }
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Responsable</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ ownerLabel(t.ownerId) }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Date de fin prevue</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ t.expectedEndDate | date: "dd/MM/yyyy" }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Action entreprise</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ t.actionTaken || "-" }}
+              </p>
+            </div>
+          </div>
+          <div class="atypical-soft-block p-4 mt-4">
+            <p class="text-xs text-gray-500 m-0">Opportunite detectee</p>
+            <p class="text-sm text-gray-900 m-0 mt-1">
+              {{ t.opportunity || "-" }}
+            </p>
+          </div>
+          <div class="atypical-soft-block p-4 mt-4">
+            <p class="text-xs text-gray-500 m-0">Commentaires</p>
+            <p class="text-sm text-gray-900 m-0 mt-1">
+              {{ t.comments || "-" }}
+            </p>
+          </div>
+        </div>
+
+        <div class="atypical-section">
+          <h3 class="atypical-section-title">Pilotage</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Statut</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ statusLabel(t.status) }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Avancement</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ t.progress }}%
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Service DTI</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ t.entityLabel }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Date de debut</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ t.startDate | date: "dd/MM/yyyy" }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Date de fin reelle</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{
+                  t.actualEndDate ? (t.actualEndDate | date: "dd/MM/yyyy") : "-"
+                }}
+              </p>
+            </div>
+          </div>
+        </div>
+      } @else {
+        <div class="atypical-section">
+          <h3 class="atypical-section-title">Informations generales</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Type de production</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ t.productionTypeLabel }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Responsable</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ ownerLabel(t.ownerId) }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Service DTI concerne</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ t.specialtyLabel || t.entityLabel || "-" }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Statut</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ statusLabel(t.status) }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="atypical-section">
+          <h3 class="atypical-section-title">Planning</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Date de debut</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ t.startDate | date: "dd/MM/yyyy" }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Date de fin prevue</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ t.expectedEndDate | date: "dd/MM/yyyy" }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Date de fin reelle</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{
+                  t.actualEndDate ? (t.actualEndDate | date: "dd/MM/yyyy") : "-"
+                }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Avancement</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ t.progress }}%
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="atypical-section">
+          <h3 class="atypical-section-title">Jalon et application</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Jalon</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ t.jalonLabel || "-" }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Sous-jalon</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ t.subJalonLabel || "-" }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Application</p>
+              <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+                {{ t.applicationLabel || "-" }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="atypical-section">
+          <h3 class="atypical-section-title">Suivi</h3>
+          <div class="space-y-4">
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Problemes rencontres</p>
+              <p class="text-sm text-gray-900 m-0 mt-1">
+                {{ t.issues || "-" }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Actions correctives</p>
+              <p class="text-sm text-gray-900 m-0 mt-1">
+                {{ t.correctiveActions || "-" }}
+              </p>
+            </div>
+            <div class="atypical-soft-block p-4">
+              <p class="text-xs text-gray-500 m-0">Commentaires</p>
+              <p class="text-sm text-gray-900 m-0 mt-1">
+                {{ t.comments || "-" }}
+              </p>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</ng-container>
+
+<ng-template #missingTask>
+  <div class="atypical-form-shell">
+    <div class="atypical-form-card text-center py-14 space-y-4">
+      <p class="text-sm text-gray-500 m-0">Élément introuvable ou non disponible.</p>
+      <button mat-flat-button color="primary" routerLink="/planification/projets" type="button">
+        Retour aux projets
+      </button>
+    </div>
+  </div>
+</ng-template>

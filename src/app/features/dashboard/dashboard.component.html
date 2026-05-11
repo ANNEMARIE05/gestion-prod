@@ -1,0 +1,182 @@
+<div class="space-y-8">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900 tracking-tight">
+      Tableau de bord
+    </h1>
+    <p class="text-sm text-gray-500 mt-1">
+      Vue d’ensemble de la production et de la planification.
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <!-- Ressources distinctes -->
+    <a
+      routerLink="/utilisateurs/ressources"
+      class="atypical-soft-block p-5 flex flex-col gap-3 border border-slate-100/80 shadow-sm rounded-2xl transition hover:border-violet-200 hover:shadow-md outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+    >
+      <div class="flex items-center justify-between gap-3">
+        <span class="text-sm font-medium text-gray-600"
+          >Ressources (personnes)</span
+        >
+        <span
+          class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-md"
+        >
+          <mat-icon class="!text-[22px] !w-[22px] !h-[22px]">groups</mat-icon>
+        </span>
+      </div>
+      <p class="text-3xl font-bold tabular-nums text-gray-900 tracking-tight">
+        {{ stats().uniqueResources }}
+      </p>
+      <span class="text-xs text-violet-700 font-medium flex items-center gap-1">
+        Voir les ressources
+        <mat-icon class="!text-[14px] !w-[14px] !h-[14px]"
+          >chevron_right</mat-icon
+        >
+      </span>
+    </a>
+
+    <!-- Projets -->
+    <a
+      routerLink="/production/projets"
+      class="atypical-soft-block p-5 flex flex-col gap-3 border border-slate-100/80 shadow-sm rounded-2xl transition hover:border-indigo-200 hover:shadow-md outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+    >
+      <div class="flex items-center justify-between gap-3">
+        <span class="text-sm font-medium text-gray-600">Projets</span>
+        <span
+          class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-md"
+        >
+          <mat-icon class="!text-[22px] !w-[22px] !h-[22px]"
+            >folder_open</mat-icon
+          >
+        </span>
+      </div>
+      <p class="text-3xl font-bold tabular-nums text-gray-900 tracking-tight">
+        {{ stats().projects }}
+      </p>
+      <span class="text-xs text-indigo-600 font-medium flex items-center gap-1">
+        Voir les projets
+        <mat-icon class="!text-[14px] !w-[14px] !h-[14px]"
+          >chevron_right</mat-icon
+        >
+      </span>
+    </a>
+
+    <!-- Audits -->
+    <a
+      routerLink="/production/audits"
+      class="atypical-soft-block p-5 flex flex-col gap-3 border border-slate-100/80 shadow-sm rounded-2xl transition hover:border-rose-200 hover:shadow-md outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+    >
+      <div class="flex items-center justify-between gap-3">
+        <span class="text-sm font-medium text-gray-600">Audits IT</span>
+        <span
+          class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-orange-500 text-white shadow-md"
+        >
+          <mat-icon class="!text-[22px] !w-[22px] !h-[22px]">security</mat-icon>
+        </span>
+      </div>
+      <p class="text-3xl font-bold tabular-nums text-gray-900 tracking-tight">
+        {{ stats().audits }}
+      </p>
+      <span class="text-xs text-rose-600 font-medium flex items-center gap-1">
+        Voir les audits
+        <mat-icon class="!text-[14px] !w-[14px] !h-[14px]"
+          >chevron_right</mat-icon
+        >
+      </span>
+    </a>
+
+    <!-- Ingénierie & veille -->
+    <a
+      routerLink="/production/veille"
+      class="atypical-soft-block p-5 flex flex-col gap-3 border border-slate-100/80 shadow-sm rounded-2xl transition hover:border-emerald-200 hover:shadow-md outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+    >
+      <div class="flex items-center justify-between gap-3">
+        <span class="text-sm font-medium text-gray-600"
+          >Ingénierie &amp; veille</span
+        >
+        <span
+          class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-md"
+        >
+          <mat-icon class="!text-[22px] !w-[22px] !h-[22px]"
+            >engineering</mat-icon
+          >
+        </span>
+      </div>
+      <p class="text-3xl font-bold tabular-nums text-gray-900 tracking-tight">
+        {{ stats().engineering }}
+      </p>
+      <span
+        class="text-xs text-emerald-700 font-medium flex items-center gap-1"
+      >
+        Voir la liste
+        <mat-icon class="!text-[14px] !w-[14px] !h-[14px]"
+          >chevron_right</mat-icon
+        >
+      </span>
+    </a>
+    <a
+      routerLink="/planification/projets"
+      class="atypical-soft-block p-4 flex flex-col gap-2 border border-rose-100/80 shadow-sm rounded-2xl bg-rose-50/40 transition hover:border-rose-200 hover:shadow-md outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+    >
+      <div class="flex items-center justify-between gap-2">
+        <span class="text-xs font-medium text-rose-900/90"
+          >Planification projet - NOK</span
+        >
+        <mat-icon class="!text-lg text-rose-600">cancel_presentation</mat-icon>
+      </div>
+      <p class="text-2xl font-bold tabular-nums text-rose-950 m-0">
+        {{ planBuckets().nok }}
+      </p>
+      <span class="text-xs text-rose-700 font-medium flex items-center gap-1">
+        Voir planifications
+        <mat-icon class="!text-[14px] !w-[14px] !h-[14px]"
+          >chevron_right</mat-icon
+        >
+      </span>
+    </a>
+
+    <a
+      routerLink="/planification/projets"
+      class="atypical-soft-block p-4 flex flex-col gap-2 border border-amber-100/80 shadow-sm rounded-2xl bg-amber-50/30 transition hover:border-amber-200 hover:shadow-md outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+    >
+      <div class="flex items-center justify-between gap-2">
+        <span class="text-xs font-medium text-amber-900/80"
+          >Planification projet - En cours</span
+        >
+        <mat-icon class="!text-lg text-amber-700">hourglass_top</mat-icon>
+      </div>
+      <p class="text-2xl font-bold tabular-nums text-amber-950 m-0">
+        {{ planBuckets().enCours }}
+      </p>
+      <span class="text-xs text-amber-700 font-medium flex items-center gap-1">
+        Voir planifications
+        <mat-icon class="!text-[14px] !w-[14px] !h-[14px]"
+          >chevron_right</mat-icon
+        >
+      </span>
+    </a>
+
+    <a
+      routerLink="/planification/projets"
+      class="atypical-soft-block p-4 flex flex-col gap-2 border border-emerald-100/80 shadow-sm rounded-2xl bg-emerald-50/30 transition hover:border-emerald-200 hover:shadow-md outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+    >
+      <div class="flex items-center justify-between gap-2">
+        <span class="text-xs font-medium text-emerald-900/80"
+          >Planification projet - Terminés</span
+        >
+        <mat-icon class="!text-lg text-emerald-700">check_circle</mat-icon>
+      </div>
+      <p class="text-2xl font-bold tabular-nums text-emerald-950 m-0">
+        {{ planBuckets().termines }}
+      </p>
+      <span
+        class="text-xs text-emerald-700 font-medium flex items-center gap-1"
+      >
+        Voir planifications
+        <mat-icon class="!text-[14px] !w-[14px] !h-[14px]"
+          >chevron_right</mat-icon
+        >
+      </span>
+    </a>
+  </div>
+</div>

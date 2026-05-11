@@ -1,0 +1,778 @@
+<section class="atypical-form-shell">
+  <header class="atypical-form-header">
+    <div></div>
+  </header>
+
+  <div class="atypical-form-card">
+    <form
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+      class="space-y-6"
+      [class.audit-form-compact]="isEngineeringPlanningType()"
+      [class.project-form-compact]="!isEngineeringPlanningType()"
+    >
+      <div class="atypical-input-grid">
+        @if (isEngineeringPlanningType()) {
+          <mat-form-field
+            appearance="fill"
+            class="w-full ng-field-segmented ng-field-segmented--aligned"
+          >
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>fingerprint</mat-icon>
+              <span
+                >Identification<span class="ng-field-segmented__req"
+                  >*</span
+                ></span
+              >
+            </div>
+            <input
+              matInput
+              formControlName="identification"
+              autocomplete="off"
+            />
+          </mat-form-field>
+          <mat-form-field
+            appearance="fill"
+            class="w-full ng-field-segmented ng-field-segmented--aligned"
+          >
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>travel_explore</mat-icon>
+              <span>Veille<span class="ng-field-segmented__req">*</span></span>
+            </div>
+            <mat-select formControlName="watchId">
+              @for (watch of watchOptions(); track watch.id) {
+                <mat-option [value]="watch.id">{{ watch.libelle }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        } @else if (isAuditPlanningType()) {
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>pin</mat-icon>
+              <span>ID equipement</span>
+            </div>
+            <input
+              matInput
+              formControlName="equipmentId"
+              autocomplete="off"
+              placeholder="Ex. EQ-AUD-001"
+            />
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>fact_check</mat-icon>
+              <span>Audit<span class="ng-field-segmented__req">*</span></span>
+            </div>
+            <mat-select formControlName="auditId">
+              @for (auditItem of auditProductionOptions(); track auditItem.id) {
+                <mat-option [value]="auditItem.id">{{
+                  auditItem.libelle
+                }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        } @else {
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>category</mat-icon>
+              <span
+                >Type de production<span class="ng-field-segmented__req"
+                  >*</span
+                ></span
+              >
+            </div>
+            <input
+              matInput
+              formControlName="productionTypeLabel"
+              autocomplete="off"
+            />
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>folder</mat-icon>
+              <span>Projet<span class="ng-field-segmented__req">*</span></span>
+            </div>
+            <mat-select formControlName="projectId">
+              @for (project of projects(); track project.id) {
+                <mat-option [value]="project.id">{{
+                  project.libelle
+                }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+      </div>
+
+      @if (isAuditPlanningType()) {
+        <div class="atypical-input-grid">
+          <mat-form-field
+            appearance="fill"
+            class="w-full ng-field-segmented ng-field-segmented--audit-specialty"
+          >
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>workspace_premium</mat-icon>
+              <span
+                >Specialite<span class="ng-field-segmented__req">*</span></span
+              >
+            </div>
+            <mat-select formControlName="specialtyId">
+              @for (specialty of specialtyOptions(); track specialty.id) {
+                <mat-option [value]="specialty.id">{{
+                  specialty.label
+                }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      }
+
+      @if (isProjectOrMonitoringPlanningType()) {
+        <div class="atypical-input-grid">
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>workspace_premium</mat-icon>
+              <span
+                >Service DTI concerne<span class="ng-field-segmented__req"
+                  >*</span
+                ></span
+              >
+            </div>
+            <mat-select formControlName="specialtyId">
+              @for (specialty of specialtyOptions(); track specialty.id) {
+                <mat-option [value]="specialty.id">{{
+                  specialty.label
+                }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>person</mat-icon>
+              <span
+                >Responsable<span class="ng-field-segmented__req">*</span></span
+              >
+            </div>
+            <mat-select formControlName="ownerId">
+              @for (owner of ownerOptions(); track owner.id) {
+                <mat-option [value]="owner.id">{{ owner.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      }
+
+      @if (isProjectOrMonitoringPlanningType()) {
+        <div class="atypical-input-grid">
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>event</mat-icon>
+              <span
+                >Date de debut<span class="ng-field-segmented__req"
+                  >*</span
+                ></span
+              >
+            </div>
+            <input
+              matInput
+              [matDatepicker]="startDatePicker"
+              formControlName="startDate"
+            />
+            <mat-datepicker-toggle
+              matSuffix
+              [for]="startDatePicker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #startDatePicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>event_available</mat-icon>
+              <span
+                >Date de fin prevue<span class="ng-field-segmented__req"
+                  >*</span
+                ></span
+              >
+            </div>
+            <input
+              matInput
+              [matDatepicker]="expectedEndDatePicker"
+              formControlName="expectedEndDate"
+            />
+            <mat-datepicker-toggle
+              matSuffix
+              [for]="expectedEndDatePicker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #expectedEndDatePicker></mat-datepicker>
+          </mat-form-field>
+        </div>
+
+        <div class="atypical-input-grid">
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>percent</mat-icon>
+              <span>Etat d avancement (%)</span>
+            </div>
+            <input
+              matInput
+              type="number"
+              min="0"
+              max="100"
+              formControlName="progress"
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>flag</mat-icon>
+              <span>Jalon cle atteint<span class="ng-field-segmented__req">*</span></span>
+            </div>
+            <mat-select formControlName="jalonId">
+              @for (jalon of jalonOptions(); track jalon.id) {
+                <mat-option [value]="jalon.id">{{ jalon.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      } @else if (isAuditPlanningType()) {
+        <div class="atypical-input-grid">
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>flag</mat-icon>
+              <span>Jalon</span>
+            </div>
+            <mat-select formControlName="jalonId">
+              <mat-option value="">Aucun</mat-option>
+              @for (jalon of jalonOptions(); track jalon.id) {
+                <mat-option [value]="jalon.id">{{ jalon.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      } @else if (isEngineeringPlanningType()) {
+        <mat-form-field
+          appearance="fill"
+          class="w-full ng-field-segmented ng-field-segmented--aligned"
+        >
+          <div matPrefix class="ng-field-segmented__prefix">
+            <mat-icon>flag</mat-icon>
+            <span>Jalon<span class="ng-field-segmented__req">*</span></span>
+          </div>
+          <mat-select formControlName="jalonId">
+            <mat-option value="">Aucun</mat-option>
+            @for (jalon of jalonOptions(); track jalon.id) {
+              <mat-option [value]="jalon.id">{{ jalon.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
+
+      @if (subJalonOptions().length > 0 && !isEngineeringPlanningType()) {
+        <mat-form-field
+          appearance="fill"
+          class="w-full ng-field-segmented ng-field-segmented--textarea ng-field-segmented--aligned"
+        >
+          <div matPrefix class="ng-field-segmented__prefix">
+            <mat-icon>subdirectory_arrow_right</mat-icon>
+            <span>Sous-jalon</span>
+          </div>
+          <mat-select formControlName="subJalonId">
+            <mat-option value="">Aucun</mat-option>
+            @for (subJalon of subJalonOptions(); track subJalon.id) {
+              <mat-option [value]="subJalon.id">{{
+                subJalon.label
+              }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
+
+      @if (showApplicationSelect() && isProjectPlanningType()) {
+        <mat-form-field
+          appearance="fill"
+          class="w-full ng-field-segmented ng-field-segmented--aligned"
+        >
+          <div matPrefix class="ng-field-segmented__prefix">
+            <mat-icon>apps</mat-icon>
+            <span>Application</span>
+          </div>
+          <mat-select formControlName="subJalonApplicationId">
+            <mat-option value="">Aucune</mat-option>
+            @for (app of subJalonApplicationOptions(); track app.id) {
+              <mat-option [value]="app.id">{{ app.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
+
+      @if (isAuditPlanningType()) {
+        <div class="atypical-input-grid">
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>devices</mat-icon>
+              <span>Type d equipement</span>
+            </div>
+            <mat-select formControlName="equipmentType">
+              <mat-option value="">—</mat-option>
+              @for (opt of equipmentTypeOptions; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>place</mat-icon>
+              <span>Localisation</span>
+            </div>
+            <mat-select formControlName="locationType">
+              <mat-option value="">—</mat-option>
+              @for (opt of locationTypeOptions; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="atypical-input-grid">
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>badge</mat-icon>
+              <span>Identifiant / Nom</span>
+            </div>
+            <input
+              matInput
+              formControlName="equipmentIdentifier"
+              autocomplete="off"
+            />
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>group</mat-icon>
+              <span>Utilisateur ou service affecte</span>
+            </div>
+            <mat-select formControlName="assignedResourceId">
+              <mat-option value="">—</mat-option>
+              @for (owner of ownerOptions(); track owner.id) {
+                <mat-option [value]="owner.id">{{ owner.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="atypical-input-grid">
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>rocket_launch</mat-icon>
+              <span>Date de mise en service</span>
+            </div>
+            <input
+              matInput
+              [matDatepicker]="commissioningPicker"
+              formControlName="commissioningDate"
+            />
+            <mat-datepicker-toggle
+              matSuffix
+              [for]="commissioningPicker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #commissioningPicker></mat-datepicker>
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>health_and_safety</mat-icon>
+              <span>Etat</span>
+            </div>
+            <mat-select formControlName="equipmentState">
+              <mat-option value="">—</mat-option>
+              @for (opt of equipmentStateOptions; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="atypical-input-grid">
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>build_circle</mat-icon>
+              <span>Dernier entretien / verification</span>
+            </div>
+            <input
+              matInput
+              [matDatepicker]="lastMaintPicker"
+              formControlName="lastMaintenanceDate"
+            />
+            <mat-datepicker-toggle
+              matSuffix
+              [for]="lastMaintPicker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #lastMaintPicker></mat-datepicker>
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>event_repeat</mat-icon>
+              <span>Prochaine maintenance</span>
+            </div>
+            <input
+              matInput
+              [matDatepicker]="nextMaintPicker"
+              formControlName="nextMaintenanceDate"
+            />
+            <mat-datepicker-toggle
+              matSuffix
+              [for]="nextMaintPicker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #nextMaintPicker></mat-datepicker>
+          </mat-form-field>
+        </div>
+
+        <div class="atypical-input-grid">
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>verified</mat-icon>
+              <span>Echeance de garantie</span>
+            </div>
+            <input
+              matInput
+              [matDatepicker]="warrantyPicker"
+              formControlName="warrantyDeadline"
+            />
+            <mat-datepicker-toggle
+              matSuffix
+              [for]="warrantyPicker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #warrantyPicker></mat-datepicker>
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>key</mat-icon>
+              <span>Licence</span>
+            </div>
+            <mat-select formControlName="licenseStatus">
+              <mat-option value="">—</mat-option>
+              @for (opt of licenseStatusOptions; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field
+          appearance="fill"
+          class="w-full ng-field-segmented ng-field-segmented--textarea ng-field-segmented--tight ng-field-segmented--notes"
+        >
+          <div matPrefix class="ng-field-segmented__prefix">
+            <mat-icon>notes</mat-icon>
+            <span>Remarques</span>
+          </div>
+          <textarea
+            matInput
+            rows="3"
+            formControlName="auditRemarks"
+            autocomplete="off"
+          ></textarea>
+        </mat-form-field>
+      }
+
+      @if (isEngineeringPlanningType()) {
+        <div class="atypical-input-grid">
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>category</mat-icon>
+              <span
+                >Thematique<span class="ng-field-segmented__req">*</span></span
+              >
+            </div>
+            <mat-select formControlName="topic">
+              <mat-option value="">Aucune</mat-option>
+              @for (topic of topicOptions; track topic.value) {
+                <mat-option [value]="topic.value">{{ topic.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="atypical-input-grid">
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>source</mat-icon>
+              <span>Source<span class="ng-field-segmented__req">*</span></span>
+            </div>
+            <mat-select formControlName="source">
+              <mat-option value="">Aucune</mat-option>
+              @for (source of sourceOptions; track source.value) {
+                <mat-option [value]="source.value">{{
+                  source.label
+                }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>workspace_premium</mat-icon>
+              <span
+                >Specialite<span class="ng-field-segmented__req">*</span></span
+              >
+            </div>
+            <mat-select formControlName="specialtyId">
+              <mat-option value="">Aucune</mat-option>
+              @for (specialty of specialtyOptions(); track specialty.id) {
+                <mat-option [value]="specialty.id">{{
+                  specialty.label
+                }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="atypical-input-grid">
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>person</mat-icon>
+              <span
+                >Responsable<span class="ng-field-segmented__req">*</span></span
+              >
+            </div>
+            <mat-select formControlName="ownerId">
+              @for (owner of ownerOptions(); track owner.id) {
+                <mat-option [value]="owner.id">{{ owner.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>calendar_month</mat-icon>
+              <span
+                >Date de veille / decouverte<span
+                  class="ng-field-segmented__req"
+                  >*</span
+                ></span
+              >
+            </div>
+            <input
+              matInput
+              [matDatepicker]="discoveryDatePicker"
+              formControlName="startDate"
+            />
+            <mat-datepicker-toggle
+              matSuffix
+              [for]="discoveryDatePicker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #discoveryDatePicker></mat-datepicker>
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>insights</mat-icon>
+              <span
+                >Niveau de maturite<span class="ng-field-segmented__req"
+                  >*</span
+                ></span
+              >
+            </div>
+            <mat-select formControlName="maturityLevel">
+              <mat-option value="">Aucun</mat-option>
+              @for (maturity of maturityLevelOptions; track maturity.value) {
+                <mat-option [value]="maturity.value">{{
+                  maturity.label
+                }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>trending_up</mat-icon>
+              <span
+                >Impact potentiel<span class="ng-field-segmented__req"
+                  >*</span
+                ></span
+              >
+            </div>
+            <mat-select formControlName="potentialImpact">
+              <mat-option value="">Aucun</mat-option>
+              @for (impact of impactOptions; track impact.value) {
+                <mat-option [value]="impact.value">{{
+                  impact.label
+                }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="atypical-input-grid">
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>play_circle</mat-icon>
+              <span>Action entreprise</span>
+            </div>
+            <input
+              matInput
+              formControlName="actionTaken"
+              autocomplete="off"
+              placeholder="Etude, test, formation, integration..."
+            />
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>event_busy</mat-icon>
+              <span>Date de fin</span>
+            </div>
+            <input
+              matInput
+              [matDatepicker]="auditEndDatePicker"
+              formControlName="expectedEndDate"
+            />
+            <mat-datepicker-toggle
+              matSuffix
+              [for]="auditEndDatePicker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #auditEndDatePicker></mat-datepicker>
+          </mat-form-field>
+        </div>
+
+        <div class="atypical-input-grid">
+          <mat-form-field
+            appearance="fill"
+            class="w-full ng-field-segmented ng-field-segmented--textarea"
+          >
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>lightbulb</mat-icon>
+              <span
+                >Opportunite detectee<span class="ng-field-segmented__req"
+                  >*</span
+                ></span
+              >
+            </div>
+            <textarea
+              matInput
+              rows="2"
+              formControlName="opportunity"
+              autocomplete="off"
+            ></textarea>
+          </mat-form-field>
+          <mat-form-field
+            appearance="fill"
+            class="w-full ng-field-segmented ng-field-segmented--textarea"
+          >
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>comment</mat-icon>
+              <span>Commentaires</span>
+            </div>
+            <textarea
+              matInput
+              rows="2"
+              formControlName="comments"
+              autocomplete="off"
+            ></textarea>
+          </mat-form-field>
+        </div>
+      }
+
+      @if (isProjectOrMonitoringPlanningType()) {
+        <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+          <div matPrefix class="ng-field-segmented__prefix">
+            <mat-icon>report_problem</mat-icon>
+            <span>Problemes rencontres</span>
+          </div>
+          <textarea
+            matInput
+            rows="3"
+            formControlName="issues"
+            autocomplete="off"
+          ></textarea>
+        </mat-form-field>
+
+        <mat-form-field
+          appearance="fill"
+          class="w-full ng-field-segmented ng-field-segmented--textarea ng-field-segmented--tight ng-field-segmented--notes"
+        >
+          <div matPrefix class="ng-field-segmented__prefix">
+            <mat-icon>build</mat-icon>
+            <span>Actions correctives</span>
+          </div>
+          <textarea
+            matInput
+            rows="2"
+            formControlName="correctiveActions"
+            autocomplete="off"
+          ></textarea>
+        </mat-form-field>
+      }
+
+      @if (!isAuditPlanningType()) {
+        <div class="atypical-input-grid">
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>task_alt</mat-icon>
+              <span>Statut</span>
+            </div>
+            <mat-select formControlName="status">
+              @for (status of statusOptions(); track status.value) {
+                <mat-option [value]="status.value">{{
+                  status.label
+                }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          @if (!isEngineeringPlanningType()) {
+            <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+              <div matPrefix class="ng-field-segmented__prefix">
+                <mat-icon>event_busy</mat-icon>
+                <span>Date de fin reelle</span>
+              </div>
+              <input
+                matInput
+                [matDatepicker]="actualEndDatePicker"
+                formControlName="actualEndDate"
+              />
+              <mat-datepicker-toggle
+                matSuffix
+                [for]="actualEndDatePicker"
+              ></mat-datepicker-toggle>
+              <mat-datepicker #actualEndDatePicker></mat-datepicker>
+            </mat-form-field>
+          }
+        </div>
+      }
+
+      @if (isProjectOrMonitoringPlanningType()) {
+        <mat-form-field
+          appearance="fill"
+          class="w-full ng-field-segmented ng-field-segmented--textarea ng-field-segmented--tight ng-field-segmented--notes"
+        >
+          <div matPrefix class="ng-field-segmented__prefix">
+            <mat-icon>comment</mat-icon>
+            <span>Commentaires</span>
+          </div>
+          <textarea
+            matInput
+            rows="3"
+            formControlName="comments"
+            autocomplete="off"
+          ></textarea>
+        </mat-form-field>
+      }
+
+      <div class="atypical-form-actions">
+        <button
+          type="button"
+          mat-button
+          class="!px-8 !py-6"
+          [disabled]="loading()"
+          (click)="cancel()"
+        >
+          Annuler
+        </button>
+        <button
+          type="submit"
+          mat-flat-button
+          color="primary"
+          [appBtnLoading]="loading()"
+          class="!px-12 !py-6 shadow-lg shadow-primary/20"
+        >
+          Enregistrer
+        </button>
+      </div>
+    </form>
+  </div>
+</section>

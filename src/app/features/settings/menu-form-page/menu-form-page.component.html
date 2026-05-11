@@ -1,0 +1,251 @@
+<div class="atypical-form-shell">
+  <div class="atypical-form-header">
+    <div class="flex items-center gap-4">
+      <button
+        mat-icon-button
+        type="button"
+        [routerLink]="backRoute"
+        class="!bg-white shadow-sm hover:shadow-md transition-shadow !rounded-md"
+        aria-label="Retour à la liste"
+      >
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div>
+        <h1 class="atypical-form-title">{{ pageTitle }}</h1>
+        <p class="atypical-form-subtitle">
+          Libellé, icône, route Angular, menu parent éventuel et actions
+          disponibles sur ce menu.
+        </p>
+        <div class="atypical-section-band mt-3"></div>
+      </div>
+    </div>
+    <div
+      class="hidden md:flex items-center gap-2 text-sm font-semibold text-gray-500"
+    >
+      <mat-icon class="!text-lg text-gray-400">edit_document</mat-icon>
+      Fiche
+    </div>
+  </div>
+
+  <div class="atypical-form-card">
+    <div class="space-y-8">
+      <div class="atypical-section">
+        <h3 class="atypical-section-title">Identité du menu</h3>
+        <div class="atypical-input-grid">
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>label</mat-icon>
+              <span>Libellé<span class="ng-field-segmented__req">*</span></span>
+            </div>
+            <input
+              matInput
+              [(ngModel)]="label"
+              name="mlabel"
+              autocomplete="off"
+              placeholder="Ex. Tableau de bord"
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>{{ icon || "folder" }}</mat-icon>
+              <span>Icône Material</span>
+            </div>
+            <input
+              matInput
+              [(ngModel)]="icon"
+              name="micon"
+              autocomplete="off"
+              placeholder="Ex. dashboard"
+            />
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="atypical-section">
+        <h3 class="atypical-section-title">Navigation</h3>
+
+        <div class="flex flex-col md:flex-row md:items-start gap-4">
+          <mat-form-field
+            appearance="fill"
+            class="flex-1 w-full ng-field-segmented"
+          >
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>link</mat-icon>
+              <span>Route<span class="ng-field-segmented__req">*</span></span>
+            </div>
+            <input
+              matInput
+              [(ngModel)]="routePath"
+              name="mroute"
+              autocomplete="off"
+              placeholder="/dashboard"
+            />
+          </mat-form-field>
+
+          @if (!isCreate && parentReadOnlyLabel) {
+            <div
+              class="atypical-soft-block flex-1 w-full flex gap-3 items-start"
+            >
+              <mat-icon class="text-slate-500 shrink-0 mt-0.5"
+                >account_tree</mat-icon
+              >
+              <div>
+                <p
+                  class="text-xs font-semibold text-slate-500 uppercase tracking-wide m-0 mb-1"
+                >
+                  Menu parent
+                </p>
+                <p class="text-sm text-slate-800 m-0">
+                  <span class="font-semibold">{{ parentReadOnlyLabel }}</span>
+                  <span class="text-slate-500">
+                    — élément sous un sous-menu ; la hiérarchie se gère depuis
+                    la liste.</span
+                  >
+                </p>
+              </div>
+            </div>
+          } @else {
+            <mat-form-field
+              appearance="fill"
+              class="flex-1 w-full ng-field-segmented"
+            >
+              <div matPrefix class="ng-field-segmented__prefix">
+                <mat-icon>account_tree</mat-icon>
+                <span>Menu parent</span>
+              </div>
+              <mat-select
+                [(ngModel)]="parentId"
+                name="mparent"
+                [disabled]="!isCreate"
+                aria-label="Menu parent (racine uniquement)"
+              >
+                <mat-option [value]="null">— Aucun (racine)</mat-option>
+                @for (opt of parentOptions(); track opt.id) {
+                  <mat-option [value]="opt.id">{{ opt.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          }
+        </div>
+      </div>
+
+      <div class="atypical-section">
+        <h3 class="atypical-section-title">Actions disponibles sur ce menu</h3>
+        <p class="text-sm text-gray-500 m-0">
+          Cochez les actions du catalogue qui pourront être réalisées sur la
+          page de ce menu (Créer, Modifier, Exporter, etc.). Elles seront
+          ensuite attribuables aux profils.
+        </p>
+
+        @if (settings.allActions().length === 0) {
+          <div class="atypical-soft-block flex gap-3 items-start">
+            <mat-icon class="text-slate-500 shrink-0 mt-0.5">info</mat-icon>
+            <p class="text-sm text-slate-600 m-0">
+              Aucune action n’a encore été définie dans le catalogue. Créez
+              d’abord vos actions depuis la page « Actions ».
+            </p>
+          </div>
+        } @else {
+          <div class="atypical-soft-block">
+            <div
+              class="flex items-center justify-between mb-3 pb-3 border-b border-slate-200/80"
+            >
+              <div
+                class="flex items-center gap-2 text-sm font-semibold text-slate-700"
+              >
+                <mat-icon class="!text-lg text-slate-500">bolt</mat-icon>
+                <span
+                  >{{ settings.allActions().length }} action(s) au
+                  catalogue</span
+                >
+              </div>
+              <mat-checkbox
+                [checked]="allActionsChecked"
+                (change)="toggleAllActions($event.checked)"
+                class="!text-sm font-semibold"
+              >
+                Tout cocher
+              </mat-checkbox>
+            </div>
+
+            <div
+              class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2"
+            >
+              @for (a of settings.allActions(); track a.id) {
+                <mat-checkbox
+                  [checked]="isActionOn(a.id)"
+                  (change)="toggleAction(a.id, $event.checked)"
+                  class="font-medium"
+                >
+                  <span class="inline-flex items-center gap-1.5">
+                    <mat-icon
+                      class="!text-base !w-4 !h-4 text-amber-600 shrink-0"
+                      >{{ a.icon || "bolt" }}</mat-icon
+                    >
+                    <span>
+                      {{ a.label }}
+                      <span class="text-slate-400 font-normal text-xs ml-1"
+                        >({{ a.code }})</span
+                      >
+                      @if (!a.active) {
+                        <span class="text-slate-400 font-normal text-xs ml-1"
+                          >— inactive</span
+                        >
+                      }
+                    </span>
+                  </span>
+                </mat-checkbox>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="atypical-section">
+        <h3 class="atypical-section-title">État</h3>
+        <div class="atypical-soft-block">
+          <div
+            class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+          >
+            <div
+              class="flex items-center gap-2 text-sm font-semibold text-slate-700"
+            >
+              <mat-icon class="!text-xl text-slate-500"
+                >power_settings_new</mat-icon
+              >
+              <span>Menu actif</span>
+            </div>
+            <mat-slide-toggle
+              [(ngModel)]="active"
+              name="mactive"
+              color="primary"
+            ></mat-slide-toggle>
+          </div>
+        </div>
+      </div>
+
+      <div class="atypical-form-actions">
+        <button
+          type="button"
+          mat-button
+          [routerLink]="backRoute"
+          class="!px-8 !py-6"
+        >
+          Annuler
+        </button>
+        <button
+          type="button"
+          mat-flat-button
+          color="primary"
+          [disabled]="!canSave"
+          [appBtnLoading]="loading()"
+          (click)="save()"
+          class="!px-12 !py-6 shadow-lg shadow-primary/20"
+        >
+          {{ isCreate ? "Créer" : "Enregistrer" }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

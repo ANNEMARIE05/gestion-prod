@@ -1,0 +1,70 @@
+/* Réserve l'encapsulation : cible explicite sous ce composant */
+/* Largeur fixe : évite que les libellés longs élargissent la colonne (jusqu'à 35 %) et repoussent la saisie */
+:host .audit-form-compact .ng-field-segmented:not(.ng-field-segmented--tight) .ng-field-segmented__prefix {
+  flex: 0 0 10.25rem;
+  width: 10.25rem;
+  min-width: 10.25rem;
+  max-width: 10.25rem;
+  padding-right: 1rem !important;
+  margin-right: 0.9rem !important;
+  box-sizing: border-box;
+}
+
+:host .audit-form-compact .ng-field-segmented:not(.ng-field-segmented--tight) .ng-field-segmented__prefix mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* Mode projet : aligne strictement la séparation et le début de saisie. */
+:host .project-form-compact .ng-field-segmented:not(.ng-field-segmented--tight) .ng-field-segmented__prefix {
+  flex: 0 0 10.25rem;
+  width: 10.25rem;
+  min-width: 10.25rem;
+  max-width: 10.25rem;
+  padding-right: 1rem !important;
+  margin-right: 0.9rem !important;
+  box-sizing: border-box;
+}
+
+:host .project-form-compact .ng-field-segmented:not(.ng-field-segmented--tight) .ng-field-segmented__prefix mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* Harmonise "Commentaires" et "Actions correctives" en mode projet */
+:host .ng-field-segmented--notes .ng-field-segmented__prefix {
+  flex: 0 0 10.25rem;
+  width: 10.25rem;
+  min-width: 10.25rem;
+  max-width: 10.25rem;
+}
+
+/* Aligne les champs ciblés (Service DTI concerné / Problèmes rencontrés). */
+:host .ng-field-segmented--aligned .ng-field-segmented__prefix {
+  flex: 0 0 8.4rem;
+  width: 8.4rem;
+  min-width: 8.4rem;
+  max-width: 8.4rem;
+  padding-right: 0.95rem !important;
+  margin-right: 0.85rem !important;
+}
+
+/* Spécialité audit : ligne pleine largeur, zone de saisie plus longue */
+:host .ng-field-segmented--audit-specialty:not(.ng-field-segmented--tight) .ng-field-segmented__prefix {
+  flex: 0 0 7.5rem;
+  width: 7.5rem;
+  min-width: 7.5rem;
+  max-width: 7.5rem;
+}
+
+:host .ng-field-segmented--audit-specialty .mat-mdc-text-field-wrapper {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+:host .ng-field-segmented--audit-specialty .mat-mdc-form-field-infix {
+  min-width: 12rem;
+  width: 100%;
+}

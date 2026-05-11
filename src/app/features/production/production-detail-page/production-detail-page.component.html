@@ -1,0 +1,141 @@
+<ng-container *ngIf="item">
+  <div class="atypical-form-shell">
+    <div class="atypical-form-header">
+      <div class="flex items-start gap-4 min-w-0 flex-1">
+        <button
+          mat-icon-button
+          [routerLink]="backRoute"
+          class="!bg-white shadow-sm hover:shadow-md transition-shadow !rounded-md mt-1 flex-shrink-0"
+          type="button"
+        >
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+
+        <div class="min-w-0">
+          <h1 class="atypical-form-title m-0">{{ item.libelle }}</h1>
+
+          <p class="atypical-form-subtitle m-0 mt-1">{{ typeLabel }}</p>
+
+          <div class="atypical-section-band mt-3"></div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-2 justify-end">
+        <button
+          mat-stroked-button
+          [routerLink]="['/production/edit', item.id]"
+          class="!rounded-md !border-gray-200"
+          type="button"
+        >
+          <mat-icon class="mr-2">edit</mat-icon>
+
+          Modifier
+        </button>
+      </div>
+    </div>
+
+    <div class="atypical-form-card space-y-8">
+      <div class="atypical-section">
+        <h3 class="atypical-section-title">Description</h3>
+
+        <p class="text-sm text-gray-500 leading-relaxed m-0">
+          {{ item.description || "Aucune description." }}
+        </p>
+      </div>
+
+      <ng-container
+        *ngIf="
+          item.type === 'AUDIT' ||
+          item.type === 'ENGINEERING' ||
+          item.type === 'MONITORING'
+        "
+      >
+        <div class="atypical-section">
+          <h3 class="atypical-section-title">Ressource</h3>
+
+          <div
+            *ngIf="item.resources?.length; else noAuditRes"
+            class="flex items-center gap-4 p-4 atypical-soft-block max-w-md"
+          >
+            <div
+              class="w-12 h-12 rounded-md bg-white shadow-sm flex items-center justify-center text-primary font-black flex-shrink-0"
+            >
+              {{ initials(userDisplayName(item.resources[0])) }}
+            </div>
+
+            <p class="font-semibold text-gray-900 text-sm m-0">
+              {{ userDisplayName(item.resources[0]) }}
+            </p>
+          </div>
+
+          <ng-template #noAuditRes>
+            <p class="text-gray-500 m-0 text-sm">Aucune ressource assignée.</p>
+          </ng-template>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="item.type === 'PROJECT'">
+        <div class="atypical-section" *ngIf="item.tpm">
+          <h3 class="atypical-section-title">TPM</h3>
+
+          <div class="flex items-center gap-3 atypical-soft-block p-4">
+            <div
+              class="w-12 h-12 rounded-md bg-white shadow-sm flex items-center justify-center text-primary font-black flex-shrink-0"
+            >
+              {{ initials(userDisplayName(item.tpm)) }}
+            </div>
+
+            <p class="text-sm font-semibold text-gray-900 m-0">
+              {{ userDisplayName(item.tpm) }}
+            </p>
+          </div>
+        </div>
+
+        <div class="atypical-section">
+          <h3 class="atypical-section-title">Ressources</h3>
+
+          <div
+            *ngIf="item.resources?.length; else noRes"
+            class="grid grid-cols-1 md:grid-cols-2 gap-4"
+          >
+            <div
+              *ngFor="let res of item.resources"
+              class="flex items-center gap-4 p-4 atypical-soft-block"
+            >
+              <div
+                class="w-12 h-12 rounded-md bg-white shadow-sm flex items-center justify-center text-primary font-black flex-shrink-0"
+              >
+                {{ initials(userDisplayName(res)) }}
+              </div>
+
+              <p class="font-semibold text-gray-900 text-sm m-0">
+                {{ userDisplayName(res) }}
+              </p>
+            </div>
+          </div>
+
+          <ng-template #noRes>
+            <p class="text-gray-500 m-0 text-sm">Aucune ressource assignée.</p>
+          </ng-template>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</ng-container>
+
+<div *ngIf="!item" class="atypical-form-shell">
+  <div class="atypical-form-card text-center py-14 space-y-4">
+    <p class="text-sm text-gray-500 m-0">
+      Élément introuvable ou non disponible.
+    </p>
+
+    <button
+      mat-flat-button
+      color="primary"
+      routerLink="/production/projets"
+      type="button"
+    >
+      Retour aux projets
+    </button>
+  </div>
+</div>

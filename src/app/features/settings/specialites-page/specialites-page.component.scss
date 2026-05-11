@@ -1,0 +1,37 @@
+.specialites-page {
+  .app-list-toolbar {
+    gap: 1rem 1.25rem;
+  }
+
+  .app-list-filters {
+    gap: 0.75rem 1rem;
+  }
+
+  .specialites-table {
+    .mat-mdc-header-cell,
+    .mat-mdc-cell {
+      padding-top: 0.9rem !important;
+      padding-bottom: 0.9rem !important;
+      padding-left: 1.25rem !important;
+      padding-right: 1.25rem !important;
+      vertical-align: middle;
+    }
+
+    .mat-mdc-header-cell:first-child,
+    .mat-mdc-cell:first-child {
+      padding-left: 1.5rem !important;
+    }
+
+    .mat-mdc-header-cell:last-child,
+    .mat-mdc-cell:last-child {
+      padding-right: 1.5rem !important;
+    }
+  }
+
+  .specialites-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.375rem;
+  }
+}

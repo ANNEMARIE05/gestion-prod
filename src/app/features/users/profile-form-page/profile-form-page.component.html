@@ -1,0 +1,116 @@
+<div class="atypical-form-shell">
+  <div class="atypical-form-header">
+    <div class="flex items-center gap-4">
+      <button
+        mat-icon-button
+        type="button"
+        [routerLink]="backRoute"
+        class="!bg-white shadow-sm hover:shadow-md transition-shadow !rounded-md"
+        aria-label="Retour à la liste"
+      >
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div>
+        <h1 class="atypical-form-title">{{ pageTitle }}</h1>
+        <p class="atypical-form-subtitle">
+          Nom du profil, puis cochez les menus visibles et les actions
+          autorisées par écran (selon l’habilitation).
+        </p>
+        <div class="atypical-section-band mt-3"></div>
+      </div>
+    </div>
+    <div
+      class="hidden md:flex items-center gap-2 text-sm font-semibold text-gray-500"
+    >
+      <mat-icon class="!text-lg text-gray-400">edit_document</mat-icon>
+      Fiche
+    </div>
+  </div>
+
+  <div class="atypical-form-card">
+    <div class="space-y-8">
+      <div class="atypical-section">
+        <h3 class="atypical-section-title">Informations</h3>
+
+        <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+          <div matPrefix class="ng-field-segmented__prefix">
+            <mat-icon>badge</mat-icon>
+            <span
+              >Nom du profil<span class="ng-field-segmented__req">*</span></span
+            >
+          </div>
+          <input
+            matInput
+            [(ngModel)]="label"
+            name="plabel"
+            autocomplete="off"
+            placeholder="Ex. CHEF_PROJET"
+          />
+        </mat-form-field>
+      </div>
+
+      <div class="atypical-section">
+        <h3 class="atypical-section-title">Menus et actions</h3>
+        <p class="text-sm text-gray-500 m-0">
+          Cochez les menus visibles, puis les actions autorisées pour chaque
+          menu (parmi celles définies à l’habilitation).
+        </p>
+        <div
+          class="atypical-soft-block max-h-[min(60vh,420px)] overflow-y-auto space-y-3"
+        >
+          @for (row of menusFlat(); track row.item.id) {
+            <div [style.margin-left.rem]="row.depth * 0.75">
+              <mat-checkbox
+                [checked]="isMenuOn(row.item.id)"
+                (change)="toggleMenu(row.item.id, $event.checked)"
+                class="font-medium"
+              >
+                {{ row.item.label }}
+                <span class="text-slate-400 font-normal text-xs ml-1">{{
+                  row.item.route
+                }}</span>
+              </mat-checkbox>
+              @if (isMenuOn(row.item.id)) {
+                <div class="mt-2 ml-6 flex flex-wrap gap-x-3 gap-y-1">
+                  @for (a of habActions(row.item.id); track a.id) {
+                    <mat-checkbox
+                      [checked]="isActionOn(row.item.id, a.id)"
+                      (change)="
+                        toggleAction(row.item.id, a.id, $event.checked)
+                      "
+                      class="!text-xs"
+                    >
+                      {{ a.label }}
+                    </mat-checkbox>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="atypical-form-actions">
+        <button
+          type="button"
+          mat-button
+          [routerLink]="backRoute"
+          class="!px-8 !py-6"
+        >
+          Annuler
+        </button>
+        <button
+          type="button"
+          mat-flat-button
+          color="primary"
+          [disabled]="!canSave"
+          [appBtnLoading]="loading()"
+          (click)="save()"
+          class="!px-12 !py-6 shadow-lg shadow-primary/20"
+        >
+          {{ isCreate ? "Créer" : "Enregistrer" }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

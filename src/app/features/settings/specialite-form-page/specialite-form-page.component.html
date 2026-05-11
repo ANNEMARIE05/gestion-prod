@@ -1,0 +1,101 @@
+<div class="atypical-form-shell">
+  <div class="atypical-form-header">
+    <div class="flex items-center gap-4">
+      <button
+        mat-icon-button
+        type="button"
+        [routerLink]="backRoute"
+        class="!bg-white shadow-sm hover:shadow-md transition-shadow !rounded-md"
+        aria-label="Retour à la liste"
+      >
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div>
+        <h1 class="atypical-form-title">{{ pageTitle }}</h1>
+        <p class="atypical-form-subtitle">
+          Libellé de la spécialité (utilisée pour qualifier les ressources et
+          les fiches).
+        </p>
+        <div class="atypical-section-band mt-3"></div>
+      </div>
+    </div>
+    <div
+      class="hidden md:flex items-center gap-2 text-sm font-semibold text-gray-500"
+    >
+      <mat-icon class="!text-lg text-gray-400">edit_document</mat-icon>
+      Fiche
+    </div>
+  </div>
+
+  <div class="atypical-form-card">
+    <div class="space-y-8">
+      <div class="atypical-section">
+        <h3 class="atypical-section-title">Identité</h3>
+        <div class="atypical-input-grid">
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>workspace_premium</mat-icon>
+              <span>Libellé<span class="ng-field-segmented__req">*</span></span>
+            </div>
+            <input
+              matInput
+              [(ngModel)]="label"
+              name="splabel"
+              autocomplete="off"
+              placeholder="Ex. Cybersécurité"
+            />
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="atypical-section">
+        <h3 class="atypical-section-title">État</h3>
+        <div class="atypical-soft-block">
+          <div
+            class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+          >
+            <div
+              class="flex items-center gap-2 text-sm font-semibold text-slate-700"
+            >
+              <mat-icon class="!text-xl text-slate-500"
+                >power_settings_new</mat-icon
+              >
+              <span>Spécialité active</span>
+            </div>
+            <mat-slide-toggle
+              [(ngModel)]="active"
+              name="sactive"
+              color="primary"
+            ></mat-slide-toggle>
+          </div>
+          <p class="text-xs text-slate-500 m-0 mt-2">
+            Si désactivée, la spécialité n’est plus sélectionnable pour les
+            nouvelles affectations utilisateur.
+          </p>
+        </div>
+      </div>
+
+      <div class="atypical-form-actions">
+        <button
+          type="button"
+          mat-button
+          [routerLink]="backRoute"
+          class="!px-8 !py-6"
+        >
+          Annuler
+        </button>
+        <button
+          type="button"
+          mat-flat-button
+          color="primary"
+          [disabled]="!canSave"
+          [appBtnLoading]="loading()"
+          (click)="save()"
+          class="!px-12 !py-6 shadow-lg shadow-primary/20"
+        >
+          {{ isCreate ? "Créer" : "Enregistrer" }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

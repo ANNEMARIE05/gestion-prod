@@ -1,0 +1,241 @@
+<div class="space-y-8">
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div>
+      <a
+        routerLink="/settings"
+        class="inline-flex items-center text-xs font-semibold text-slate-500 hover:text-indigo-600 mb-2"
+      >
+        <mat-icon class="!text-base !w-4 !h-4 mr-1">arrow_back</mat-icon>
+        Retour au paramétrage
+      </a>
+      <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Jalons</h1>
+      <p class="text-sm text-gray-500">Gestion des jalons.</p>
+    </div>
+    <div class="flex flex-wrap items-center gap-3">
+      <input
+        #csvInput
+        type="file"
+        accept=".csv,text/csv"
+        class="hidden"
+        (change)="importCsv($event)"
+      />
+      <button
+        mat-stroked-button
+        type="button"
+        (click)="csvInput.click()"
+        class="!rounded-2xl !border-slate-200 !text-slate-600 !py-4 !px-5 !mb-1 bg-white shadow-sm"
+      >
+        <mat-icon class="mr-2">upload_file</mat-icon>
+        Importer
+      </button>
+      <button
+        mat-stroked-button
+        type="button"
+        (click)="exportCsv()"
+        class="!rounded-2xl !border-slate-200 !text-slate-600 !py-4 !px-5 !mb-1 bg-white shadow-sm"
+      >
+        <mat-icon class="mr-2">file_download</mat-icon>
+        Exporter
+      </button>
+      <button
+        mat-stroked-button
+        type="button"
+        (click)="downloadTemplateCsv()"
+        class="!rounded-2xl !border-slate-200 !text-slate-600 !py-4 !px-5 !mb-1 bg-white shadow-sm"
+      >
+        <mat-icon class="mr-2">download</mat-icon>
+        Télécharger modèle
+      </button>
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        routerLink="/settings/jalons/nouveau"
+        class="!rounded-2xl !px-7 !py-4 !mb-1 shadow-xl shadow-indigo-200"
+      >
+        <mat-icon class="mr-2">add</mat-icon>
+        Nouveau jalon
+      </button>
+    </div>
+  </div>
+
+  @if (isLoading) {
+    <app-loading-skeleton-table [cols]="5"></app-loading-skeleton-table>
+  } @else {
+    <div class="space-y-4">
+      <div class="app-list-toolbar">
+        <div class="app-search-shell">
+          <mat-icon class="text-gray-400 mr-3">search</mat-icon>
+          <input
+            (keyup)="applyFilter($event)"
+            placeholder="Libellé, code, application…"
+            class="app-search-input"
+          />
+        </div>
+
+      </div>
+
+      <div class="premium-card overflow-hidden bg-white">
+        <table mat-table [dataSource]="dataSource" class="w-full">
+          <ng-container matColumnDef="numero">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="!bg-gray-50/50 !text-gray-600 !font-semibold w-14"
+            >
+              N°
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row; let i = index"
+              class="text-sm text-gray-600 tabular-nums"
+            >
+              {{ rowNumber(i) }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="label">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="!bg-gray-50/50 !text-gray-600 !font-semibold"
+            >
+              Jalon
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="font-medium text-gray-900"
+            >
+              {{ row.label }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="parent">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="!bg-gray-50/50 !text-gray-600 !font-semibold"
+            >
+              Jalon parent
+            </th>
+            <td mat-cell *matCellDef="let row" class="text-sm text-gray-600">
+              {{ getParentLabel(row) }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="applications">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="!bg-gray-50/50 !text-gray-600 !font-semibold"
+            >
+              Applications
+            </th>
+            <td mat-cell *matCellDef="let row" class="text-sm text-gray-600">
+              @if (getApplications(row).length === 0) {
+                <span class="text-xs text-gray-400">—</span>
+              } @else {
+                <div class="flex flex-wrap gap-1.5">
+                  @for (
+                    applicationLabel of getApplications(row);
+                    track applicationLabel
+                  ) {
+                    <span
+                      class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-700"
+                    >
+                      {{ applicationLabel }}
+                    </span>
+                  }
+                </div>
+              }
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="creation">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="!bg-gray-50/50 !text-gray-600 !font-semibold whitespace-nowrap"
+            >
+              Création
+            </th>
+            <td mat-cell *matCellDef="let row" class="text-sm">
+              @if (row.createdAt) {
+                <span class="text-gray-700 whitespace-nowrap">{{
+                  row.createdAt | date: "dd/MM/yyyy"
+                }}</span>
+              } @else {
+                <span class="text-gray-400">—</span>
+              }
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="!bg-gray-50/50 !text-gray-600 !font-semibold text-right px-4"
+            >
+              Actions
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-right px-4 whitespace-nowrap"
+            >
+              <button
+                mat-icon-button
+                type="button"
+                class="text-gray-400 hover:text-indigo-600"
+                matTooltip="Voir détail"
+                (click)="goToDetail(row)"
+              >
+                <mat-icon class="!text-lg">visibility</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                type="button"
+                class="text-gray-400 hover:text-primary"
+                matTooltip="Modifier"
+                (click)="goToEdit(row)"
+              >
+                <mat-icon class="!text-lg">edit</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                type="button"
+                class="text-gray-400 hover:text-red-500"
+                matTooltip="Supprimer"
+                (click)="remove(row)"
+              >
+                <mat-icon class="!text-lg">delete_outline</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: displayedColumns"
+            class="hover:bg-gray-50/50 transition-colors"
+          ></tr>
+
+          <tr class="mat-row" *matNoDataRow>
+            <td
+              class="mat-cell p-8 text-center text-gray-500"
+              [attr.colspan]="displayedColumns.length"
+            >
+              Aucun jalon trouvé.
+            </td>
+          </tr>
+        </table>
+
+        <mat-paginator
+          [pageSizeOptions]="[10, 25, 50]"
+          aria-label="Sélectionner la page"
+        ></mat-paginator>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,209 @@
+<div class="atypical-form-shell">
+  <div class="atypical-form-header">
+    <div class="flex items-center gap-4">
+      <button
+        mat-icon-button
+        type="button"
+        [routerLink]="backRoute"
+        class="!bg-white shadow-sm hover:shadow-md transition-shadow !rounded-md"
+        aria-label="Retour à la liste"
+      >
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div>
+        <h1 class="atypical-form-title">{{ pageTitle }}</h1>
+        <p class="atypical-form-subtitle">
+          Identité, coordonnées, rattachement à une entité, profil
+          d’habilitation et spécialité.
+        </p>
+        <div class="atypical-section-band mt-3"></div>
+      </div>
+    </div>
+    <div
+      class="hidden md:flex items-center gap-2 text-sm font-semibold text-gray-500"
+    >
+      <mat-icon class="!text-lg text-gray-400">edit_document</mat-icon>
+      Fiche
+    </div>
+  </div>
+
+  <div class="atypical-form-card">
+    <div class="space-y-8">
+      <div class="atypical-section">
+        <h3 class="atypical-section-title">Identité</h3>
+        <div class="atypical-input-grid">
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>badge</mat-icon>
+              <span>Nom<span class="ng-field-segmented__req">*</span></span>
+            </div>
+            <input
+              matInput
+              [(ngModel)]="lastName"
+              name="ulast"
+              autocomplete="family-name"
+              placeholder="Nom de famille"
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>person</mat-icon>
+              <span>Prénom<span class="ng-field-segmented__req">*</span></span>
+            </div>
+            <input
+              matInput
+              [(ngModel)]="firstName"
+              name="ufirst"
+              autocomplete="given-name"
+              placeholder="Prénom"
+            />
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="atypical-section">
+        <h3 class="atypical-section-title">Coordonnées</h3>
+        <div class="atypical-input-grid">
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>mail</mat-icon>
+              <span>Email<span class="ng-field-segmented__req">*</span></span>
+            </div>
+            <input
+              matInput
+              type="email"
+              [(ngModel)]="email"
+              name="uemail"
+              autocomplete="email"
+              placeholder="adresse@entreprise.com"
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>call</mat-icon>
+              <span>Contact</span>
+            </div>
+            <input
+              matInput
+              [(ngModel)]="contact"
+              name="ucontact"
+              autocomplete="tel"
+              placeholder="Téléphone ou autre (optionnel)"
+            />
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="atypical-section">
+        <h3 class="atypical-section-title">Organisation & compétences</h3>
+        <div class="atypical-input-grid">
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>corporate_fare</mat-icon>
+              <span>Entité<span class="ng-field-segmented__req">*</span></span>
+            </div>
+            <mat-select
+              [(ngModel)]="entityId"
+              name="uentity"
+              aria-label="Entité"
+              (ngModelChange)="onEntityChange()"
+            >
+              @for (entity of rootEntities; track entity.id) {
+                <mat-option [value]="entity.id" [disabled]="!entity.active">{{
+                  entity.name
+                }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          @if (hasSubEntities) {
+            <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+              <div matPrefix class="ng-field-segmented__prefix">
+                <mat-icon>account_tree</mat-icon>
+                <span
+                  >Sous-entité<span class="ng-field-segmented__req">*</span></span
+                >
+              </div>
+              <mat-select
+                [(ngModel)]="subEntityId"
+                name="usubentity"
+                aria-label="Sous-entité"
+              >
+                @for (child of selectedEntityChildren; track child.id) {
+                  <mat-option [value]="child.id" [disabled]="!child.active">{{
+                    child.name
+                  }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          }
+
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>psychology</mat-icon>
+              <span
+                >Spécialité<span class="ng-field-segmented__req">*</span></span
+              >
+            </div>
+            <mat-select
+              [(ngModel)]="specialtyId"
+              name="uspecialty"
+              aria-label="Spécialité"
+            >
+              @for (s of settings.allSpecialties(); track s.id) {
+                <mat-option [value]="s.id" [disabled]="!s.active">{{
+                  s.label
+                }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="atypical-section">
+        <h3 class="atypical-section-title">Profil applicatif</h3>
+        <div class="atypical-input-grid">
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>admin_panel_settings</mat-icon>
+              <span>Profil<span class="ng-field-segmented__req">*</span></span>
+            </div>
+            <mat-select
+              [(ngModel)]="profileId"
+              name="uprofile"
+              aria-label="Profil"
+            >
+              @for (p of settings.allProfiles(); track p.id) {
+                <mat-option [value]="p.id">{{ p.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="atypical-form-actions">
+        <button
+          type="button"
+          mat-button
+          [routerLink]="backRoute"
+          class="!px-8 !py-6"
+        >
+          Annuler
+        </button>
+        <button
+          type="button"
+          mat-flat-button
+          color="primary"
+          [disabled]="!canSave"
+          [appBtnLoading]="loading()"
+          (click)="save()"
+          class="!px-12 !py-6 shadow-lg shadow-primary/20"
+        >
+          {{ isCreate ? "Créer" : "Enregistrer" }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

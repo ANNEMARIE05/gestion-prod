@@ -1,0 +1,90 @@
+<div class="atypical-form-shell">
+  <div class="atypical-form-header">
+    <div class="flex items-center gap-4">
+      <button
+        mat-icon-button
+        type="button"
+        [routerLink]="backRoute"
+        class="!bg-white shadow-sm hover:shadow-md transition-shadow !rounded-md"
+        aria-label="Retour à la liste"
+      >
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div>
+        <h1 class="atypical-form-title">{{ pageTitle }}</h1>
+        <p class="atypical-form-subtitle">
+          Libellé et description de l’application connectée.
+        </p>
+        <div class="atypical-section-band mt-3"></div>
+      </div>
+    </div>
+    <div
+      class="hidden md:flex items-center gap-2 text-sm font-semibold text-gray-500"
+    >
+      <mat-icon class="!text-lg text-gray-400">edit_document</mat-icon>
+      Fiche
+    </div>
+  </div>
+
+  <div class="atypical-form-card">
+    <div class="space-y-8">
+      <div class="atypical-section">
+        <h3 class="atypical-section-title">Identité</h3>
+        <div class="atypical-input-grid">
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>apps</mat-icon>
+              <span>Libellé<span class="ng-field-segmented__req">*</span></span>
+            </div>
+            <input
+              matInput
+              [(ngModel)]="label"
+              name="applabel"
+              autocomplete="off"
+              placeholder="Ex. Gestion de Production"
+            />
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="atypical-section">
+        <h3 class="atypical-section-title">Description</h3>
+        <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+          <div matPrefix class="ng-field-segmented__prefix">
+            <mat-icon>notes</mat-icon>
+            <span>Description</span>
+          </div>
+          <input
+            matInput
+            [(ngModel)]="description"
+            name="appdesc"
+            autocomplete="off"
+            placeholder="Brève description de l’application"
+          />
+        </mat-form-field>
+      </div>
+
+      <div class="atypical-form-actions">
+        <button
+          type="button"
+          mat-button
+          [routerLink]="backRoute"
+          class="!px-8 !py-6"
+        >
+          Annuler
+        </button>
+        <button
+          type="button"
+          mat-flat-button
+          color="primary"
+          [disabled]="!canSave"
+          [appBtnLoading]="loading()"
+          (click)="save()"
+          class="!px-12 !py-6 shadow-lg shadow-primary/20"
+        >
+          {{ isCreate ? "Créer" : "Enregistrer" }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

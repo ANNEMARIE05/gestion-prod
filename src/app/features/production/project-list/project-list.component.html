@@ -1,0 +1,175 @@
+@if (isLoading) {
+  <app-loading-skeleton-table [cols]="5"></app-loading-skeleton-table>
+} @else {
+  <div class="space-y-4">
+    <div class="app-list-toolbar">
+      <div class="app-search-shell">
+        <mat-icon class="text-gray-400 mr-3">search</mat-icon>
+        <input
+          (keyup)="applyFilter($event)"
+          placeholder="Libellé, ressource…"
+          class="app-search-input"
+        />
+      </div>
+
+    </div>
+
+    <div class="premium-card overflow-hidden">
+      <table mat-table [dataSource]="dataSource" class="w-full">
+        <ng-container matColumnDef="numero">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold w-14"
+          >
+            N°
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let element; let i = index"
+            class="text-sm text-gray-600 tabular-nums"
+          >
+            {{ rowNumber(i) }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="libelle">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold py-4"
+          >
+            Libellé
+          </th>
+          <td mat-cell *matCellDef="let element" class="py-4">
+            <div class="flex flex-col">
+              <span class="text-sm font-bold text-gray-900">{{
+                element.libelle
+              }}</span>
+              @if (element.description) {
+                <span class="text-xs text-gray-500 line-clamp-2">{{
+                  element.description
+                }}</span>
+              }
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="tpm">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold"
+          >
+            TPM
+          </th>
+          <td mat-cell *matCellDef="let element" class="text-sm">
+            <span *ngIf="element.tpm" class="font-medium text-gray-900">{{
+              resourceDisplayName(element.tpm)
+            }}</span>
+            <span *ngIf="!element.tpm" class="text-gray-400">—</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="resources">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold"
+          >
+            {{ resourcesColumnHeader() }}
+          </th>
+          <td mat-cell *matCellDef="let element">
+            <div class="flex -space-x-2 overflow-hidden">
+              <div
+                *ngFor="let res of element.resources"
+                class="inline-block h-8 w-8 rounded-full ring-2 ring-white bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold"
+                [matTooltip]="resourceDisplayName(res)"
+              >
+                {{ initialsFromName(resourceDisplayName(res)) }}
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="createdAt">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold whitespace-nowrap"
+          >
+            Date de création
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let element"
+            class="text-sm text-gray-600 whitespace-nowrap"
+          >
+            @if (creationDate(element); as cd) {
+              {{ cd | date: "dd/MM/yyyy" }}
+            } @else {
+              <span class="text-gray-400">—</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold text-right px-4"
+          >
+            Actions
+          </th>
+          <td mat-cell *matCellDef="let element" class="text-right px-4">
+            <button
+              mat-icon-button
+              (click)="openDetail(element)"
+              class="text-gray-400 hover:text-primary transition-colors"
+              matTooltip="Voir détails"
+            >
+              <mat-icon class="!text-lg">visibility</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              (click)="openEdit(element)"
+              class="text-gray-400 hover:text-blue-600 transition-colors"
+              matTooltip="Modifier"
+            >
+              <mat-icon class="!text-lg">edit</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              (click)="confirmDelete(element)"
+              class="text-gray-400 hover:text-red-500 transition-colors"
+              matTooltip="Supprimer"
+            >
+              <mat-icon class="!text-lg">delete_outline</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns"
+          class="hover:bg-gray-50/50 transition-colors cursor-pointer"
+        ></tr>
+
+        <tr class="mat-row" *matNoDataRow>
+          <td
+            class="mat-cell p-8 text-center text-gray-500"
+            [attr.colspan]="displayedColumns.length"
+          >
+            Aucun résultat trouvé pour la recherche.
+          </td>
+        </tr>
+      </table>
+
+      <mat-paginator
+        [pageSizeOptions]="[5, 10, 25]"
+        aria-label="Sélectionner la page"
+      ></mat-paginator>
+    </div>
+  </div>
+}

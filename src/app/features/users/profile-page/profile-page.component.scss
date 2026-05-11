@@ -1,0 +1,84 @@
+.profile-shell {
+  display: grid;
+  gap: 1rem;
+}
+
+.profile-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.profile-header p {
+  margin: 0.35rem 0 0;
+  color: #475569;
+}
+
+.profile-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-title h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.section-help {
+  margin: 0.5rem 0 1rem;
+  color: #475569;
+}
+
+.form-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.ng-field-segmented.ng-field-segmented--compact .ng-field-segmented__prefix {
+  min-width: 11.5rem !important;
+  max-width: 11.5rem !important;
+  width: 11.5rem !important;
+  padding-right: 1.1rem !important;
+  margin-right: 0.95rem !important;
+}
+
+.ng-field-segmented.ng-field-segmented--compact .mat-mdc-form-field-infix {
+  padding-left: 0.45rem !important;
+  padding-inline-start: 0.45rem !important;
+}
+
+.ng-field-segmented.ng-field-segmented--compact .mdc-text-field__input.mat-mdc-input-element,
+.ng-field-segmented.ng-field-segmented--compact .mat-mdc-form-field-infix .mat-mdc-select-trigger {
+  padding-left: 0 !important;
+}
+
+.status {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+}
+
+.status.error {
+  color: #b91c1c;
+}
+
+.status.success {
+  color: #15803d;
+}
+
+.actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+}

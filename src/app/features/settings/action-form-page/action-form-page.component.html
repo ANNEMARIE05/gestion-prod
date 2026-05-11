@@ -1,0 +1,129 @@
+<div class="atypical-form-shell">
+  <div class="atypical-form-header">
+    <div class="flex items-center gap-4">
+      <button
+        mat-icon-button
+        type="button"
+        [routerLink]="backRoute"
+        class="!bg-white shadow-sm hover:shadow-md transition-shadow !rounded-md"
+        aria-label="Retour à la liste"
+      >
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div>
+        <h1 class="atypical-form-title">{{ pageTitle }}</h1>
+        <p class="atypical-form-subtitle">
+          Code, libellé, icône Material et état actif. L’habilitation par menu
+          se gère depuis la fiche du menu concerné.
+        </p>
+        <div class="atypical-section-band mt-3"></div>
+      </div>
+    </div>
+    <div
+      class="hidden md:flex items-center gap-2 text-sm font-semibold text-gray-500"
+    >
+      <mat-icon class="!text-lg text-gray-400">edit_document</mat-icon>
+      Fiche
+    </div>
+  </div>
+
+  <div class="atypical-form-card">
+    <div class="space-y-8">
+      <div class="atypical-section">
+        <h3 class="atypical-section-title">Identité de l’action</h3>
+        <div class="atypical-input-grid">
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>tag</mat-icon>
+              <span>Code<span class="ng-field-segmented__req">*</span></span>
+            </div>
+            <input
+              matInput
+              [(ngModel)]="code"
+              name="acode"
+              autocomplete="off"
+              placeholder="Ex. EXPORT"
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>label</mat-icon>
+              <span>Libellé<span class="ng-field-segmented__req">*</span></span>
+            </div>
+            <input
+              matInput
+              [(ngModel)]="label"
+              name="alabel"
+              autocomplete="off"
+              placeholder="Ex. Exporter"
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>emoji_objects</mat-icon>
+              <span>Icône</span>
+            </div>
+            <input
+              matInput
+              [(ngModel)]="icon"
+              name="aicon"
+              autocomplete="off"
+              placeholder="Ex. file_download (Material Icons)"
+            />
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="atypical-section">
+        <h3 class="atypical-section-title">État</h3>
+        <div class="atypical-soft-block">
+          <div
+            class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+          >
+            <div
+              class="flex items-center gap-2 text-sm font-semibold text-slate-700"
+            >
+              <mat-icon class="!text-xl text-slate-500"
+                >power_settings_new</mat-icon
+              >
+              <span>Action active</span>
+            </div>
+            <mat-slide-toggle
+              [(ngModel)]="active"
+              name="aactive"
+              color="primary"
+            ></mat-slide-toggle>
+          </div>
+          <p class="text-xs text-slate-500 m-0 mt-2">
+            Une action désactivée reste dans le catalogue mais n’accorde plus de
+            droit effectif dans l’application.
+          </p>
+        </div>
+      </div>
+
+      <div class="atypical-form-actions">
+        <button
+          type="button"
+          mat-button
+          [routerLink]="backRoute"
+          class="!px-8 !py-6"
+        >
+          Annuler
+        </button>
+        <button
+          type="button"
+          mat-flat-button
+          color="primary"
+          [disabled]="!canSave"
+          [appBtnLoading]="loading()"
+          (click)="save()"
+          class="!px-12 !py-6 shadow-lg shadow-primary/20"
+        >
+          {{ isCreate ? "Créer" : "Enregistrer" }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

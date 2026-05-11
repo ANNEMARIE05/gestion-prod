@@ -1,0 +1,136 @@
+<div class="h-full flex flex-col bg-[#eaf1ff] border-r border-[#bfd0ff] shadow-sm overflow-hidden transition-all duration-300">
+  <!-- Logo Section -->
+  <div class="flex items-center gap-4 border-b border-[#bfd0ff] transition-all duration-300"
+       [class.p-8]="!collapsed()"
+       [class.px-3]="collapsed()"
+       [class.py-6]="collapsed()"
+       [class.justify-center]="collapsed()">
+    <div class="w-12 h-12 brand-gradient rounded-md flex items-center justify-center text-white shadow-lg shadow-blue-300 rotate-3 flex-shrink-0">
+      <mat-icon class="!text-2xl">rocket_launch</mat-icon>
+    </div>
+    <div class="flex flex-col flex-1 min-w-0 overflow-hidden" *ngIf="!collapsed()">
+      <span class="text-xl font-black text-slate-900 tracking-tight leading-none truncate">Gestion Prod</span>
+      <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1 truncate">NGSER</span>
+    </div>
+    <button *ngIf="!collapsed()"
+            type="button"
+            (click)="toggleSidebar()"
+            matTooltip="Replier la sidebar"
+            matTooltipPosition="right"
+            class="sidebar-toggle-btn flex-shrink-0"
+            aria-label="Replier la sidebar">
+      <mat-icon class="!text-lg">chevron_left</mat-icon>
+    </button>
+  </div>
+
+  <!-- Toggle button when collapsed -->
+  <div *ngIf="collapsed()" class="flex justify-center py-2 border-b border-[#bfd0ff]">
+    <button type="button"
+            (click)="toggleSidebar()"
+            matTooltip="Déplier la sidebar"
+            matTooltipPosition="right"
+            class="sidebar-toggle-btn"
+            aria-label="Déplier la sidebar">
+      <mat-icon class="!text-lg">chevron_right</mat-icon>
+    </button>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="flex-1 mt-4 space-y-2 overflow-y-auto custom-scrollbar pb-10 transition-all duration-300"
+       [class.px-4]="!collapsed()"
+       [class.px-2]="collapsed()">
+    <div *ngFor="let item of menus()">
+      <!-- Main Item -->
+      <a *ngIf="!item.children"
+         [routerLink]="item.route"
+         routerLinkActive="sidebar-item-active text-white"
+         [matTooltip]="collapsed() ? item.label : ''"
+         matTooltipPosition="right"
+         class="sidebar-item group"
+         [class.justify-center]="collapsed()"
+         [class.!px-2]="collapsed()">
+        <mat-icon class="group-hover:scale-110 transition-transform flex-shrink-0">{{item.icon}}</mat-icon>
+        <span *ngIf="!collapsed()" class="truncate">{{item.label}}</span>
+      </a>
+
+      <!-- Collapsible Item -->
+      <div *ngIf="item.children" class="space-y-1">
+        <button (click)="toggleExpand(item.id)"
+                [matTooltip]="collapsed() ? item.label : ''"
+                matTooltipPosition="right"
+                class="w-full sidebar-item group"
+                [class.justify-between]="!collapsed()"
+                [class.justify-center]="collapsed()"
+                [class.!px-2]="collapsed()"
+                [class.text-brand-accent]="isExpanded(item.id)">
+          <div class="flex items-center gap-3 min-w-0">
+            <mat-icon class="group-hover:rotate-12 transition-transform flex-shrink-0">{{item.icon}}</mat-icon>
+            <span *ngIf="!collapsed()" class="truncate">{{item.label}}</span>
+          </div>
+          <mat-icon *ngIf="!collapsed()"
+                    class="!text-sm transition-transform duration-300 flex-shrink-0"
+                    [class.rotate-180]="isExpanded(item.id)">expand_more</mat-icon>
+        </button>
+
+        <!-- Submenu -->
+        <div *ngIf="isExpanded(item.id)" class="ml-4 border-l-2 border-blue-200/80 pl-2 space-y-1 py-1">
+          <a *ngFor="let sub of item.children"
+             [routerLink]="sub.route"
+             routerLinkActive="sidebar-submenu-item-active"
+             class="sidebar-submenu-item group">
+            <span>{{sub.label}}</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- User Quick Info -->
+  <div class="mt-auto transition-all duration-300"
+       [class.p-6]="!collapsed()"
+       [class.p-3]="collapsed()">
+    <div class="glass-panel rounded-lg flex items-center shadow-premium border transition-all duration-300"
+         [class.p-4]="!collapsed()"
+         [class.gap-4]="!collapsed()"
+         [class.p-2]="collapsed()"
+         [class.justify-center]="collapsed()">
+      <div class="w-10 h-10 rounded-md brand-gradient flex items-center justify-center text-white font-black text-xs flex-shrink-0">
+        AD
+      </div>
+      <div *ngIf="!collapsed()" class="flex-1 min-w-0">
+        <p class="text-xs font-black text-slate-900 truncate">Administrator</p>
+        <div class="flex items-center gap-1 mt-0.5">
+          <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+          <p class="text-[9px] font-bold text-blue-500 uppercase tracking-tighter">Online Mode</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #8fb1ff; border-radius: 4px; }
+
+.sidebar-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  color: #1d4ed8;
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.sidebar-toggle-btn:hover {
+  background: linear-gradient(125deg, #1d4ed8 0%, #0ea5e9 100%);
+  color: #fff;
+  border-color: transparent;
+  transform: scale(1.05);
+}
+</style>

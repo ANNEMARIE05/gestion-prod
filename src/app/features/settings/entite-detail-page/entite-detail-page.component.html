@@ -1,0 +1,110 @@
+<ng-container *ngIf="entity as e; else missingEntity">
+  <div class="atypical-form-shell">
+    <div class="atypical-form-header">
+      <div class="flex items-start gap-4 min-w-0 flex-1">
+        <button
+          mat-icon-button
+          type="button"
+          routerLink="/settings/entites"
+          class="!bg-white shadow-sm hover:shadow-md transition-shadow !rounded-md mt-1 flex-shrink-0"
+        >
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+
+        <div class="min-w-0">
+          <h1 class="atypical-form-title m-0">{{ e.name }}</h1>
+
+          <p class="atypical-form-subtitle m-0 mt-1">{{ headerSubtitle() }}</p>
+
+          <div class="atypical-section-band mt-3"></div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-2 justify-end">
+        <button
+          mat-stroked-button
+          type="button"
+          [routerLink]="['/settings/entites/edit', e.id]"
+          class="!rounded-md !border-gray-200"
+        >
+          <mat-icon class="mr-2">edit</mat-icon>
+
+          Modifier
+        </button>
+      </div>
+    </div>
+
+    <div class="atypical-form-card space-y-8">
+      <div class="atypical-section">
+        <h3 class="atypical-section-title">Informations générales</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="atypical-soft-block p-4">
+            <p class="text-xs text-gray-500 m-0">Nom</p>
+
+            <p class="text-sm font-semibold text-gray-900 m-0 mt-1">{{ e.name }}</p>
+          </div>
+
+          <div class="atypical-soft-block p-4">
+            <p class="text-xs text-gray-500 m-0">Rattachée à</p>
+
+            <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+              @if (getParentLabel()) {
+                {{ getParentLabel() }}
+              } @else {
+                <span class="font-normal text-gray-600">—</span>
+              }
+            </p>
+          </div>
+
+          <div class="atypical-soft-block p-4">
+            <p class="text-xs text-gray-500 m-0">Icône</p>
+
+            <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+              {{ e.icon || '—' }}
+            </p>
+          </div>
+
+          <div class="atypical-soft-block p-4">
+            <p class="text-xs text-gray-500 m-0">Statut</p>
+
+            <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+              {{ e.active ? 'Active' : 'Inactive' }}
+            </p>
+          </div>
+
+          <div class="atypical-soft-block p-4">
+            <p class="text-xs text-gray-500 m-0">Date de création</p>
+            <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+              {{ e.createdAt ? (e.createdAt | date: 'dd/MM/yyyy') : '—' }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="atypical-section">
+        <h3 class="atypical-section-title">Sous-entités</h3>
+
+        <p class="text-sm text-gray-500 leading-relaxed m-0">
+          @if (getChildLabels().length === 0) {
+            Aucune sous-entité.
+          } @else {
+            {{ getChildLabels().join(', ') }}
+          }
+        </p>
+      </div>
+    </div>
+  </div>
+</ng-container>
+
+<ng-template #missingEntity>
+  <div class="atypical-form-shell">
+    <div class="atypical-form-card text-center py-14 space-y-4">
+      <p class="text-sm text-gray-500 m-0">Entité introuvable ou non disponible.</p>
+
+      <button mat-flat-button color="primary" routerLink="/settings/entites" type="button">
+        Retour aux entités
+      </button>
+    </div>
+  </div>
+</ng-template>
