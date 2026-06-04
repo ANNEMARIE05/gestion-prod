@@ -388,13 +388,35 @@ aside::after {
  * Utiliser sur mat-form-field : class="ng-field-segmented" + appearance="fill" (sans mat-label)
  */
 .ng-field-segmented.mat-form-field-appearance-fill {
+  overflow: visible !important;
+  margin-top: 14px !important;
+
   .mat-mdc-text-field-wrapper {
+    position: relative !important;
+    overflow: visible !important;
     padding-bottom: 0;
+    background-color: #f8fafc !important;
+    border-radius: 8px !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: none !important;
+    transition: all 0.2s ease-in-out;
+  }
+
+  &:hover:not(.mat-focused):not(.mat-form-field-invalid) .mat-mdc-text-field-wrapper {
+    border-color: #94a3b8 !important;
     background-color: #ffffff !important;
-    border-radius: 6px;
-    border: 1px solid #d1d5db;
-    box-shadow: none;
-    transition: border-color 0.15s ease;
+  }
+
+  &.mat-focused:not(.mat-form-field-invalid) .mat-mdc-text-field-wrapper {
+    border-color: #2563eb !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1) !important;
+  }
+
+  &.mat-form-field-invalid .mat-mdc-text-field-wrapper {
+    border-color: #dc2626 !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1) !important;
   }
 
   .mdc-line-ripple,
@@ -402,22 +424,27 @@ aside::after {
     display: none;
   }
 
-  /* Material impose width:180px + align-items:baseline sur le flex — on étire et laisse l’infix occuper le reste */
+  /* Material layout wrapper */
   .mat-mdc-form-field-flex {
+    overflow: visible !important;
     display: flex !important;
-    align-items: stretch !important;
+    align-items: center !important;
     width: 100%;
     min-width: 0;
+    padding-right: 0.5rem;
+    position: relative;
   }
 
   .mat-mdc-text-field-wrapper {
     min-width: 0;
   }
 
-  .mat-mdc-form-field-icon-prefix {
-    align-self: stretch !important;
+  .mat-mdc-form-field-icon-prefix,
+  .mat-mdc-form-field-prefix {
+    position: static !important;
+    align-self: center !important;
     display: flex;
-    align-items: stretch;
+    align-items: center;
     flex-shrink: 0;
   }
 
@@ -430,14 +457,14 @@ aside::after {
     flex: 1 1 0% !important;
     min-width: 0 !important;
     width: auto !important;
-    /* Une seule grille verticale pour tous les champs segmentés (texte / select / date) */
-    min-height: 40px;
-    padding-top: 8px !important;
+    min-height: 42px !important;
+    padding-top: 14px !important;
     padding-bottom: 8px !important;
-    /* MDC peut injecter du padding via tokens — tout neutraliser côté zone saisie */
-    padding-left: 1.2rem !important;
-    padding-inline-start: 1.2rem !important;
+    padding-left: 0.75rem !important;
+    padding-inline-start: 0.75rem !important;
     border-top: none;
+    display: flex;
+    align-items: center;
   }
 
   .mat-mdc-form-field-infix .mat-mdc-select {
@@ -449,23 +476,20 @@ aside::after {
     min-height: 0;
     padding-block: 0;
     padding-inline: 0 !important;
-    padding-left: 0.35rem !important;
+    padding-left: 0 !important;
     box-sizing: border-box;
   }
 
-  /* Select : host mat-mdc-select peut garder un décalage interne */
   .mat-mdc-form-field-infix .mat-mdc-select {
     padding-inline: 0 !important;
     margin-inline: 0;
   }
 
-  /* Classe MDC sur les inputs : padding horizontal hors de notre règle input + textarea */
   .mdc-text-field__input.mat-mdc-input-element {
     padding-inline: 0 !important;
-    padding-left: 0.35rem !important;
+    padding-left: 0 !important;
   }
 
-  /* Évite le double espacement MDC + zone infix (texte et select alignés au même gabarit) */
   input.mat-mdc-input-element:not(textarea),
   textarea.mat-mdc-input-element {
     padding-block: 0 !important;
@@ -474,147 +498,155 @@ aside::after {
     line-height: 1.35;
   }
 
+  /* Style the prefix as a beautiful floating badge on the top border */
   .ng-field-segmented__prefix {
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-    flex: 0 0 auto;
-    min-width: 11.25rem;
-    max-width: 42%;
-    padding: 0 0.6rem 0 0.55rem;
-    margin-right: 0.5rem;
-    border-right: 1px solid #e5e7eb;
-    align-self: stretch;
-    box-sizing: border-box;
+    position: absolute !important;
+    top: -10px !important;
+    left: 10px !important;
+    z-index: 5 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.3rem !important;
+    background: linear-gradient(135deg, #1e3a8a, #0f172a) !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
+    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.15) !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: calc(100% - 20px) !important;
+    margin: 0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
 
     mat-icon {
       flex-shrink: 0;
-      font-size: 20px;
-      width: 20px;
-      height: 20px;
-      color: #64748b;
+      font-size: 11px !important;
+      width: 11px !important;
+      height: 11px !important;
+      color: #38bdf8 !important;
     }
 
     span {
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: #6b7280;
-      line-height: 1.35;
-      white-space: normal;
+      font-size: 0.65rem !important;
+      font-weight: 700 !important;
+      color: #f1f5f9 !important;
+      line-height: 1.2 !important;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+
+      &::after {
+        display: none !important;
+      }
     }
   }
 
   .ng-field-segmented__req {
-    color: #dc2626;
+    color: #ef4444;
     font-weight: 700;
-    margin-left: 1px;
+    margin-left: 2px;
   }
 
-  /* Bande gauche plus étroite ; typographie identique au reste (text-sm = Paramétrage / corps) */
   &.ng-field-segmented--compact {
-    .ng-field-segmented__prefix {
-      min-width: 8rem;
-      max-width: 38%;
-      padding-right: 1rem !important;
-      margin-right: 0.9rem !important;
-
-      mat-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
-      }
-    }
-  }
-
-  /* Variante très compacte pour corriger les champs audit trop espacés */
-  &.ng-field-segmented--tight {
-    .ng-field-segmented__prefix {
-      min-width: 6.5rem;
-      max-width: 30%;
-      padding-right: 0.8rem !important;
-      margin-right: 0.7rem !important;
-
-      mat-icon {
-        font-size: 17px;
-        width: 17px;
-        height: 17px;
-      }
-    }
+    margin-top: 10px !important;
 
     .mat-mdc-form-field-infix {
-      min-height: 36px;
-      padding-top: 6px !important;
+      min-height: 36px !important;
+      padding-top: 12px !important;
       padding-bottom: 6px !important;
+    }
+
+    .ng-field-segmented__prefix {
+      top: -9px !important;
+      padding: 1px 6px !important;
+
+      mat-icon {
+        font-size: 10px !important;
+        width: 10px !important;
+        height: 10px !important;
+      }
+
+      span {
+        font-size: 0.6rem !important;
+      }
+    }
+  }
+
+  &.ng-field-segmented--tight {
+    margin-top: 8px !important;
+
+    .mat-mdc-form-field-infix {
+      min-height: 30px !important;
+      padding-top: 10px !important;
+      padding-bottom: 4px !important;
+    }
+
+    .ng-field-segmented__prefix {
+      top: -8px !important;
+      padding: 1px 5px !important;
+
+      mat-icon {
+        font-size: 9px !important;
+        width: 9px !important;
+        height: 9px !important;
+      }
+
+      span {
+        font-size: 0.55rem !important;
+      }
     }
   }
 
   .mdc-text-field__input,
   textarea.mat-mdc-input-element {
     font-size: 0.875rem;
-    font-weight: 400;
-    color: #374151;
+    font-weight: 500;
+    color: #1e293b;
     width: 100%;
     box-sizing: border-box;
   }
 
   .mat-mdc-select-value-text {
-    color: #374151;
-    font-weight: 400;
-  }
-
-  &.mat-focused:not(.mat-form-field-invalid) .mat-mdc-text-field-wrapper {
-    border-color: #60a5fa;
-  }
-
-  &.mat-form-field-invalid .mat-mdc-text-field-wrapper {
-    border-color: #dc2626;
+    color: #1e293b;
+    font-weight: 500;
   }
 }
 
 .ng-field-segmented.ng-field-segmented--textarea.mat-form-field-appearance-fill {
   .mat-mdc-form-field-icon-prefix {
+    align-self: flex-start !important;
     align-items: flex-start;
   }
 
   .ng-field-segmented__prefix {
+    align-self: flex-start !important;
     align-items: flex-start;
-    /* Aligné sur la zone infix (même offset que padding-top du bloc saisie) */
-    padding-top: 8px;
   }
 
-  /* Identique aux champs une ligne : pas de min-height plus haut pour le textarea court */
   .mat-mdc-form-field-infix {
-    min-height: 40px;
-    padding-top: 8px !important;
+    min-height: 80px !important;
+    padding-top: 16px !important;
     padding-bottom: 8px !important;
-    padding-left: 0 !important;
-    padding-inline-start: 0 !important;
   }
 
   textarea.mat-mdc-input-element {
-    min-height: 2.25rem !important;
+    min-height: 3.5rem !important;
     padding-block: 0 !important;
     padding-inline: 0 !important;
     line-height: 1.35;
     resize: vertical;
-    max-height: 5.5rem;
+    max-height: 8rem;
     overflow-y: auto;
   }
 
-  &.ng-field-segmented--tight .ng-field-segmented__prefix {
-    padding-top: 6px;
-  }
-
   &.ng-field-segmented--tight .mat-mdc-form-field-infix {
-    min-height: 36px;
-    padding-top: 6px !important;
+    min-height: 60px !important;
+    padding-top: 12px !important;
     padding-bottom: 6px !important;
   }
 
   &.ng-field-segmented--tight textarea.mat-mdc-input-element {
-    min-height: 1.75rem !important;
-    max-height: 4rem !important;
-    line-height: 1.25;
+    min-height: 2.5rem !important;
+    max-height: 5rem !important;
   }
 }
 

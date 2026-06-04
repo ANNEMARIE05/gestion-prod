@@ -458,7 +458,7 @@
 
         <mat-form-field
           appearance="fill"
-          class="w-full ng-field-segmented ng-field-segmented--textarea ng-field-segmented--tight ng-field-segmented--notes"
+          class="w-full ng-field-segmented ng-field-segmented--textarea"
         >
           <div matPrefix class="ng-field-segmented__prefix">
             <mat-icon>notes</mat-icon>
@@ -644,7 +644,7 @@
             </div>
             <textarea
               matInput
-              rows="2"
+              rows="3"
               formControlName="opportunity"
               autocomplete="off"
             ></textarea>
@@ -659,7 +659,7 @@
             </div>
             <textarea
               matInput
-              rows="2"
+              rows="3"
               formControlName="comments"
               autocomplete="off"
             ></textarea>
@@ -668,7 +668,10 @@
       }
 
       @if (isProjectOrMonitoringPlanningType()) {
-        <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+        <mat-form-field
+          appearance="fill"
+          class="w-full ng-field-segmented ng-field-segmented--textarea"
+        >
           <div matPrefix class="ng-field-segmented__prefix">
             <mat-icon>report_problem</mat-icon>
             <span>Problemes rencontres</span>
@@ -683,7 +686,7 @@
 
         <mat-form-field
           appearance="fill"
-          class="w-full ng-field-segmented ng-field-segmented--textarea ng-field-segmented--tight ng-field-segmented--notes"
+          class="w-full ng-field-segmented ng-field-segmented--textarea"
         >
           <div matPrefix class="ng-field-segmented__prefix">
             <mat-icon>build</mat-icon>
@@ -691,7 +694,7 @@
           </div>
           <textarea
             matInput
-            rows="2"
+            rows="3"
             formControlName="correctiveActions"
             autocomplete="off"
           ></textarea>
@@ -738,7 +741,7 @@
       @if (isProjectOrMonitoringPlanningType()) {
         <mat-form-field
           appearance="fill"
-          class="w-full ng-field-segmented ng-field-segmented--textarea ng-field-segmented--tight ng-field-segmented--notes"
+          class="w-full ng-field-segmented ng-field-segmented--textarea"
         >
           <div matPrefix class="ng-field-segmented__prefix">
             <mat-icon>comment</mat-icon>

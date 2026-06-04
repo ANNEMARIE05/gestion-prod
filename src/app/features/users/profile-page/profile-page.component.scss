@@ -46,23 +46,7 @@
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
-.ng-field-segmented.ng-field-segmented--compact .ng-field-segmented__prefix {
-  min-width: 11.5rem !important;
-  max-width: 11.5rem !important;
-  width: 11.5rem !important;
-  padding-right: 1.1rem !important;
-  margin-right: 0.95rem !important;
-}
 
-.ng-field-segmented.ng-field-segmented--compact .mat-mdc-form-field-infix {
-  padding-left: 0.45rem !important;
-  padding-inline-start: 0.45rem !important;
-}
-
-.ng-field-segmented.ng-field-segmented--compact .mdc-text-field__input.mat-mdc-input-element,
-.ng-field-segmented.ng-field-segmented--compact .mat-mdc-form-field-infix .mat-mdc-select-trigger {
-  padding-left: 0 !important;
-}
 
 .status {
   margin: 0.5rem 0 0;
