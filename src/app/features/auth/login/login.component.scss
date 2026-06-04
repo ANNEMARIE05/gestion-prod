@@ -33,7 +33,7 @@
   border-radius: 4px;
 }
 
-.login-page .login-card--transitioning > *:not(.login-success-layer) {
+.login-page .login-card--transitioning>*:not(.login-success-layer) {
   opacity: 0.38;
   pointer-events: none;
   transition: opacity 0.32s ease;
@@ -88,6 +88,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -98,6 +99,7 @@
     opacity: 0;
     transform: scale(0.65);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -105,10 +107,12 @@
 }
 
 @keyframes login-success-pulse {
+
   0%,
   100% {
     opacity: 0.72;
   }
+
   50% {
     opacity: 1;
   }

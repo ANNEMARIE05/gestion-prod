@@ -1,20 +1,19 @@
 <div class="login-page min-h-screen flex items-center justify-center bg-slate-50 p-6">
   <div class="max-w-md w-full">
-    <div
-      class="premium-card p-10 bg-white space-y-8 relative overflow-hidden rounded-2xl"
-      [class.login-card--transitioning]="postLoginTransition()"
-    >
+    <div class="premium-card p-10 bg-white space-y-8 relative overflow-hidden rounded-2xl"
+      [class.login-card--transitioning]="postLoginTransition()">
       @if (postLoginTransition()) {
-        <div class="login-success-layer" aria-live="polite">
-          <div class="login-success-icon-wrap">
-            <mat-icon class="login-success-check">check_circle</mat-icon>
-          </div>
-          <p class="login-success-title">Connexion réussie</p>
-          <p class="login-success-sub">Ouverture du tableau de bord…</p>
+      <div class="login-success-layer" aria-live="polite">
+        <div class="login-success-icon-wrap">
+          <mat-icon class="login-success-check">check_circle</mat-icon>
         </div>
+        <p class="login-success-title">Connexion réussie</p>
+        <p class="login-success-sub">Ouverture du tableau de bord…</p>
+      </div>
       }
       <div class="text-center">
-        <div class="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl text-white shadow-xl shadow-primary/20 mb-6">
+        <div
+          class="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl text-white shadow-xl shadow-primary/20 mb-6">
           <mat-icon class="!text-3xl">precision_manufacturing</mat-icon>
         </div>
         <h1 class="text-3xl font-black text-gray-900 tracking-tight">Gestion Prod</h1>
@@ -22,68 +21,47 @@
       </div>
 
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
-        <mat-form-field
-          appearance="fill"
-          class="w-full ng-field-segmented ng-field-segmented--compact login-field-segmented"
-          subscriptSizing="dynamic"
-        >
+        <mat-form-field appearance="fill"
+          class="w-full ng-field-segmented ng-field-segmented--compact login-field-segmented" subscriptSizing="dynamic">
           <div matPrefix class="ng-field-segmented__prefix">
             <mat-icon>alternate_email</mat-icon>
             <span>Email</span>
           </div>
-          <input
-            matInput
-            formControlName="email"
-            type="email"
-            autocomplete="username"
-            placeholder="nom@entreprise.com"
-          />
+          <input matInput formControlName="email" type="email" autocomplete="username"
+            placeholder="nom@entreprise.com" />
         </mat-form-field>
 
-        <mat-form-field
-          appearance="fill"
-          class="w-full ng-field-segmented ng-field-segmented--compact login-field-segmented"
-          subscriptSizing="dynamic"
-        >
+        <mat-form-field appearance="fill"
+          class="w-full ng-field-segmented ng-field-segmented--compact login-field-segmented" subscriptSizing="dynamic">
           <div matPrefix class="ng-field-segmented__prefix">
             <mat-icon>lock_open</mat-icon>
             <span>Mot de passe</span>
           </div>
-          <input
-            matInput
-            [type]="hidePassword ? 'password' : 'text'"
-            formControlName="password"
-            autocomplete="current-password"
-          />
-          <button
-            mat-icon-button
-            matSuffix
-            type="button"
-            (click)="hidePassword = !hidePassword"
+          <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password"
+            autocomplete="current-password" />
+          <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword"
             [attr.aria-label]="hidePassword ? 'Afficher le mot de passe' : 'Masquer le mot de passe'"
-            [attr.aria-pressed]="!hidePassword"
-          >
+            [attr.aria-pressed]="!hidePassword">
             <mat-icon class="text-gray-400">{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
         </mat-form-field>
 
         <div class="flex items-center justify-between">
-          <button
-            type="button"
-            class="login-forgot-btn text-xs font-semibold text-primary hover:underline bg-transparent border-0 p-0 cursor-pointer"
-          >
+          <button type="button"
+            class="login-forgot-btn text-xs font-semibold text-primary hover:underline bg-transparent border-0 p-0 cursor-pointer">
             Mot de passe oublié ?
           </button>
         </div>
 
         <button type="submit" mat-flat-button color="primary" [disabled]="loginForm.invalid || submitting()"
-                class="w-full !py-6 !rounded-xl !text-sm font-bold shadow-lg shadow-primary/20">
+          class="w-full !py-6 !rounded-xl !text-sm font-bold shadow-lg shadow-primary/20">
           {{ submitting() ? 'Connexion…' : 'Se connecter' }}
         </button>
       </form>
 
       <div class="pt-6 text-center border-t border-gray-100">
-        <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">NGSER &copy; 2026 - Digital Transformation</p>
+        <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">NGSER &copy; 2026 - Digital
+          Transformation</p>
       </div>
     </div>
   </div>
