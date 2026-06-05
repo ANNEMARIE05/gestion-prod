@@ -1,37 +1,28 @@
 /*
- * Page de connexion — Design Atypique Glassmorphic Split-Screen
+ * Page de connexion — Design Clair Moderne pour Suivi de Projets
  */
 
 .login-wrapper {
   font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
-  background: radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.15), transparent 50%),
-              radial-gradient(circle at 90% 80%, rgba(56, 189, 248, 0.12), transparent 50%),
-              #090d16;
+  background: linear-gradient(to bottom, #f8fafc, #ffffff);
 }
 
-// Couleurs personnalisées NGSER / Brand
-.text-brand-neon {
-  color: #38bdf8 !important;
-}
+// Champs de saisie du formulaire de connexion (thème clair)
+.login-input-field-light {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 
-// Effet Verre pour le panneau de connexion
-.glass-login-panel {
-  background: rgba(10, 15, 30, 0.6);
-  backdrop-filter: blur(32px);
-  -webkit-backdrop-filter: blur(32px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4),
-              inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
-
-  &:hover {
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5),
-                0 0 50px rgba(37, 99, 235, 0.1);
+  &:focus-within {
+    background: #ffffff;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 4px 12px rgba(59, 130, 246, 0.15);
   }
 }
 
-// Couche de connexion réussie (Success Screen)
-.glass-login-panel .login-success-layer {
+// Success Screen - Couche de connexion réussie
+.login-success-layer {
   position: absolute;
   inset: 0;
   z-index: 20;
@@ -42,37 +33,37 @@
   gap: 0.75rem;
   padding: 2rem;
   text-align: center;
-  background: rgba(8, 12, 24, 0.95);
-  backdrop-filter: blur(20px);
+  background: rgba(248, 250, 252, 0.98);
+  backdrop-filter: blur(10px);
   animation: success-layer-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.glass-login-panel .login-success-icon-wrap {
+.login-success-icon-wrap {
   margin-bottom: 0.5rem;
   animation: success-icon-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
 }
 
-.glass-login-panel .login-success-check {
+.login-success-check {
   font-size: 4.5rem !important;
   width: 4.5rem !important;
   height: 4.5rem !important;
-  color: #38bdf8;
-  filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.5));
+  color: #3b82f6;
+  filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.3));
 }
 
-.glass-login-panel .login-success-title {
+.login-success-title {
   margin: 0;
   font-size: 1.5rem;
   font-weight: 900;
-  color: #fff;
+  color: #1e293b;
   letter-spacing: -0.02em;
 }
 
-.glass-login-panel .login-success-sub {
+.login-success-sub {
   margin: 0;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #94a3b8;
+  color: #64748b;
   animation: success-text-pulse 1.5s ease-in-out infinite;
 }
 
@@ -105,21 +96,6 @@
   50% { opacity: 1; }
 }
 
-.animate-pulse-glow {
-  animation: pulse-glow 6s ease-in-out infinite;
-}
-
-@keyframes pulse-glow {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 0.15;
-  }
-  50% {
-    transform: scale(1.15);
-    opacity: 0.25;
-  }
-}
-
 .animate-fade-in-up {
   animation: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -143,4 +119,30 @@
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-4px); }
   75% { transform: translateX(4px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-30px);
+  }
+}
+
+.animate-float-slow {
+  animation: float-slow 8s ease-in-out infinite;
+}
+
+@keyframes float-slow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-40px);
+  }
 }

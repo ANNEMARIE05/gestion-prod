@@ -1,5 +1,5 @@
 @if (isLoading) {
-  <app-loading-skeleton-table [cols]="6"></app-loading-skeleton-table>
+  <app-loading-skeleton-table [cols]="9"></app-loading-skeleton-table>
 } @else {
   <div class="space-y-4">
     <div class="app-list-toolbar app-list-toolbar--filters-only">
@@ -410,20 +410,32 @@
       </div>
     </div>
 
+    @if (isCatalogEmpty()) {
+      <div class="premium-card bg-white p-12 text-center">
+        <mat-icon class="!w-12 !h-12 !text-[3rem] text-slate-300 mb-3">event_busy</mat-icon>
+        <p class="text-base font-semibold text-gray-700 m-0">
+          {{ emptyCatalogMessage() }}
+        </p>
+        <p class="text-sm text-gray-500 mt-2 m-0">
+          Utilisez le bouton « Planifier » pour créer une entrée.
+        </p>
+      </div>
+    } @else {
     <div class="premium-card overflow-hidden bg-white">
-      <table mat-table [dataSource]="dataSource" class="w-full">
+      <div class="overflow-x-auto">
+      <table mat-table [dataSource]="dataSource" [class]="'planification-table w-full ' + tableMinWidthClass()">
         <ng-container matColumnDef="index">
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="!bg-gray-50/50 !text-gray-600 !font-semibold"
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold w-14"
           >
             N°
           </th>
           <td
             mat-cell
             *matCellDef="let element; let i = index"
-            class="text-sm text-gray-500"
+            class="text-sm text-gray-600 tabular-nums w-14"
           >
             {{ rowNumber(i) }}
           </td>
@@ -433,17 +445,17 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="!bg-gray-50/50 !text-gray-600 !font-semibold"
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold py-4 planification-col-label"
           >
             {{ mainColumnLabel() }}
           </th>
-          <td mat-cell *matCellDef="let element" class="py-4">
+          <td mat-cell *matCellDef="let element" class="py-4 planification-col-label">
             <div class="flex flex-col">
-              <span class="text-sm font-extrabold text-primary">{{
-                element.projectLabel
+              <span class="text-sm font-bold text-gray-900">{{
+                projectDisplayLabel(element)
               }}</span>
               @if (taskSecondaryInfo(element)) {
-                <span class="text-[11px] text-gray-400">{{
+                <span class="text-xs text-gray-500 line-clamp-2">{{
                   taskSecondaryInfo(element)
                 }}</span>
               }
@@ -520,12 +532,12 @@
           >
             Mise en service
           </th>
-          <td mat-cell *matCellDef="let element" class="text-sm text-gray-500">
-            {{
-              element.commissioningDate
-                ? (element.commissioningDate | date: "dd/MM/yyyy")
-                : "-"
-            }}
+          <td mat-cell *matCellDef="let element" class="text-sm text-gray-600 whitespace-nowrap">
+            @if (planDate(element.commissioningDate); as d) {
+              {{ d | date: "dd/MM/yyyy" }}
+            } @else {
+              <span class="text-gray-400">—</span>
+            }
           </td>
         </ng-container>
 
@@ -546,13 +558,13 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="!bg-gray-50/50 !text-gray-600 !font-semibold"
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold py-4 planification-col-label"
           >
             Identification
           </th>
-          <td mat-cell *matCellDef="let element" class="py-4">
-            <span class="text-sm font-extrabold text-primary">{{
-              element.identification || "-"
+          <td mat-cell *matCellDef="let element" class="py-4 planification-col-label">
+            <span class="text-sm font-bold text-gray-900">{{
+              element.identification || "—"
             }}</span>
           </td>
         </ng-container>
@@ -561,13 +573,13 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="!bg-gray-50/50 !text-gray-600 !font-semibold"
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold py-4 planification-col-label"
           >
             Veille
           </th>
-          <td mat-cell *matCellDef="let element" class="py-4">
-            <span class="text-sm font-extrabold text-primary">{{
-              element.watchLabel || element.projectLabel || "-"
+          <td mat-cell *matCellDef="let element" class="py-4 planification-col-label">
+            <span class="text-sm font-bold text-gray-900">{{
+              element.watchLabel?.trim() || projectDisplayLabel(element)
             }}</span>
           </td>
         </ng-container>
@@ -589,21 +601,26 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="!bg-gray-50/50 !text-gray-600 !font-semibold"
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold planification-col-owner"
           >
             Responsable
           </th>
-          <td mat-cell *matCellDef="let element">
-            <div class="flex items-center gap-2">
-              <div
-                class="w-7 h-7 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-[10px] font-bold"
-              >
-                {{ ownerLabel(element.ownerId).substring(0, 2).toUpperCase() }}
+          <td mat-cell *matCellDef="let element" class="planification-col-owner">
+            @if (element.ownerId?.trim()) {
+              <div class="flex items-center gap-2 min-w-0">
+                <div
+                  class="w-8 h-8 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold"
+                >
+                  {{ ownerLabel(element.ownerId).substring(0, 2).toUpperCase() }}
+                </div>
+                <span
+                  class="text-sm font-medium text-gray-900 truncate"
+                  [matTooltip]="ownerLabel(element.ownerId)"
+                >{{ ownerLabel(element.ownerId) }}</span>
               </div>
-              <span class="text-xs font-medium text-gray-700">{{
-                ownerLabel(element.ownerId)
-              }}</span>
-            </div>
+            } @else {
+              <span class="text-sm text-gray-400">—</span>
+            }
           </td>
         </ng-container>
 
@@ -611,12 +628,16 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="!bg-gray-50/50 !text-gray-600 !font-semibold"
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold whitespace-nowrap"
           >
             Date de début
           </th>
-          <td mat-cell *matCellDef="let element" class="text-sm text-gray-500">
-            {{ element.startDate | date: "dd/MM/yyyy" }}
+          <td mat-cell *matCellDef="let element" class="text-sm text-gray-600 whitespace-nowrap">
+            @if (planDate(element.startDate); as d) {
+              {{ d | date: "dd/MM/yyyy" }}
+            } @else {
+              <span class="text-gray-400">—</span>
+            }
           </td>
         </ng-container>
 
@@ -628,10 +649,12 @@
           >
             Date de veille
           </th>
-          <td mat-cell *matCellDef="let element" class="text-sm text-gray-500">
-            {{
-              element.discoveryDate || element.startDate | date: "dd/MM/yyyy"
-            }}
+          <td mat-cell *matCellDef="let element" class="text-sm text-gray-600 whitespace-nowrap">
+            @if (planDate(element.discoveryDate ?? element.startDate); as d) {
+              {{ d | date: "dd/MM/yyyy" }}
+            } @else {
+              <span class="text-gray-400">—</span>
+            }
           </td>
         </ng-container>
 
@@ -639,12 +662,16 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="!bg-gray-50/50 !text-gray-600 !font-semibold"
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold whitespace-nowrap"
           >
             Date de fin
           </th>
-          <td mat-cell *matCellDef="let element" class="text-sm text-gray-500">
-            {{ element.expectedEndDate | date: "dd/MM/yyyy" }}
+          <td mat-cell *matCellDef="let element" class="text-sm text-gray-600 whitespace-nowrap">
+            @if (planDate(element.expectedEndDate); as d) {
+              {{ d | date: "dd/MM/yyyy" }}
+            } @else {
+              <span class="text-gray-400">—</span>
+            }
           </td>
         </ng-container>
 
@@ -652,19 +679,19 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="!bg-gray-50/50 !text-gray-600 !font-semibold"
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold planification-col-progress"
           >
             État d'avancement
           </th>
-          <td mat-cell *matCellDef="let element" class="w-40">
-            <div class="flex items-center gap-3">
+          <td mat-cell *matCellDef="let element" class="planification-col-progress">
+            <div class="flex items-center gap-2 min-w-[7rem]">
               <mat-progress-bar
                 mode="determinate"
-                [value]="element.progress"
-                class="h-1.5 rounded-full flex-1"
+                [value]="progressValue(element)"
+                class="h-1.5 rounded-full flex-1 min-w-[4rem]"
               ></mat-progress-bar>
-              <span class="text-[10px] font-extrabold text-gray-500"
-                >{{ element.progress }}%</span
+              <span class="text-xs font-semibold text-gray-600 tabular-nums shrink-0"
+                >{{ progressValue(element) }}%</span
               >
             </div>
           </td>
@@ -674,11 +701,11 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="!bg-gray-50/50 !text-gray-600 !font-semibold"
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold planification-col-status"
           >
             Statut
           </th>
-          <td mat-cell *matCellDef="let element">
+          <td mat-cell *matCellDef="let element" class="planification-col-status">
             <mat-chip-set>
               <mat-chip
                 class="!text-xs !font-semibold"
@@ -704,12 +731,16 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="!bg-gray-50/50 !text-gray-600 !font-semibold"
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold whitespace-nowrap"
           >
             Date de création
           </th>
-          <td mat-cell *matCellDef="let element" class="text-sm text-gray-500">
-            {{ element.createdAt | date: "dd/MM/yyyy" }}
+          <td mat-cell *matCellDef="let element" class="text-sm text-gray-600 whitespace-nowrap">
+            @if (planDate(element.createdAt); as d) {
+              {{ d | date: "dd/MM/yyyy" }}
+            } @else {
+              <span class="text-gray-400">—</span>
+            }
           </td>
         </ng-container>
 
@@ -717,35 +748,40 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="!bg-gray-50/50 !text-gray-600 !font-semibold text-right px-4"
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold text-right"
           >
             Actions
           </th>
-          <td mat-cell *matCellDef="let element" class="text-right px-4">
-            <button
-              mat-icon-button
-              (click)="viewDetails(element)"
-              class="text-gray-400 hover:text-primary transition-colors"
-              matTooltip="Voir détails"
-            >
-              <mat-icon class="!text-lg">visibility</mat-icon>
-            </button>
-            <button
-              mat-icon-button
-              (click)="editTask(element)"
-              class="text-gray-400 hover:text-blue-600 transition-colors"
-              matTooltip="Modifier"
-            >
-              <mat-icon class="!text-lg">edit</mat-icon>
-            </button>
-            <button
-              mat-icon-button
-              (click)="deleteTask(element)"
-              class="text-gray-400 hover:text-red-500 transition-colors"
-              matTooltip="Supprimer"
-            >
-              <mat-icon class="!text-lg">delete_outline</mat-icon>
-            </button>
+          <td mat-cell *matCellDef="let element" class="text-right whitespace-nowrap">
+            <div class="planification-actions">
+              <button
+                mat-icon-button
+                type="button"
+                (click)="viewDetails(element)"
+                class="text-gray-400 hover:text-primary transition-colors"
+                matTooltip="Voir détails"
+              >
+                <mat-icon class="!text-lg">visibility</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                type="button"
+                (click)="editTask(element)"
+                class="text-gray-400 hover:text-blue-600 transition-colors"
+                matTooltip="Modifier"
+              >
+                <mat-icon class="!text-lg">edit</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                type="button"
+                (click)="deleteTask(element)"
+                class="text-gray-400 hover:text-red-500 transition-colors"
+                matTooltip="Supprimer"
+              >
+                <mat-icon class="!text-lg">delete_outline</mat-icon>
+              </button>
+            </div>
           </td>
         </ng-container>
 
@@ -761,15 +797,17 @@
             class="mat-cell p-8 text-center text-gray-500"
             [attr.colspan]="displayedColumns.length"
           >
-            {{ tableEmptyMessage() }}
+            {{ tableFilterEmptyMessage() }}
           </td>
         </tr>
       </table>
+      </div>
 
       <mat-paginator
         [pageSizeOptions]="[5, 10, 25]"
         aria-label="Sélectionner la page"
       ></mat-paginator>
     </div>
+    }
   </div>
 }

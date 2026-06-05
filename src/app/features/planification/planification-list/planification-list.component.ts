@@ -1,4 +1,4 @@
-import { Component, input, computed, signal, ViewChild, effect } from '@angular/core';
+import { Component, input, computed, signal, ViewChild, effect, OnInit, AfterViewInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,6 +13,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { PlanificationService } from '../../../services/planification.service';
+import { ProductionService } from '../../../services/production.service';
 import { PlanTask, PlanTaskStatus } from '../../../models/plan-task';
 import { ProductionType } from '../../../models/production';
 import { SettingsService } from '../../../services/settings.service';
@@ -63,10 +64,16 @@ const STATUS_LABEL: Record<PlanTaskStatus, string> = {
   templateUrl: './planification-list.component.html',
   styleUrl: './planification-list.component.scss'
 })
-export class PlanificationListComponent {
+export class PlanificationListComponent implements OnInit, AfterViewInit {
   /** Filtre liste / stats selon l’onglet planification (projets, audits, veille). */
   type = input<ProductionType>('PROJECT');
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+
+  private readonly planService = inject(PlanificationService);
+  private readonly productionService = inject(ProductionService);
+  private readonly router = inject(Router);
+  private readonly settingsService = inject(SettingsService);
+  private readonly dialog = inject(MatDialog);
 
   private readonly defaultDisplayedColumns = ['index', 'projectLabel', 'owner', 'startDate', 'endDate', 'progress', 'status', 'createdAt', 'action'];
   private readonly engineeringDisplayedColumns = ['index', 'identification', 'watch', 'topic', 'owner', 'watchDate', 'endDate', 'status', 'action'];
@@ -125,6 +132,9 @@ export class PlanificationListComponent {
     this.planService.allTasks().filter(t => t.type === this.type())
   );
 
+  /** Aucune planification enregistrée pour cet onglet. */
+  readonly isCatalogEmpty = computed(() => this.filteredTasks().length === 0);
+
   /** Libellé du 1er filtre (parent production). */
   readonly parentFilterLabel = computed(() => {
     switch (this.type()) {
@@ -152,14 +162,17 @@ export class PlanificationListComponent {
     this.settingsService.allSpecialties().map((s) => ({ id: s.id, label: s.label })),
   );
 
-  statusLabel = (s: PlanTaskStatus) => {
+  statusLabel = (s: PlanTaskStatus | undefined) => {
+    if (!s) {
+      return '—';
+    }
     const t = this.type();
     if (t === 'PROJECT' || t === 'MONITORING') {
       if (s === 'TODO' || s === 'CANCELLED') return 'NOK';
       if (s === 'IN_PROGRESS') return 'En cours';
       if (s === 'DONE') return 'Terminé';
     }
-    return STATUS_LABEL[s];
+    return STATUS_LABEL[s] ?? '—';
   };
 
   get displayedColumns(): string[] {
@@ -185,25 +198,34 @@ export class PlanificationListComponent {
     }
   }
 
-  /** Message sous le tableau lorsque la liste filtrée est vide. */
-  tableEmptyMessage(): string {
-    if (this.filteredTasks().length === 0) {
-      return this.noPlanificationDataMessage();
-    }
-    return 'Aucun résultat.';
-  }
-
-  private noPlanificationDataMessage(): string {
+  tableMinWidthClass(): string {
     switch (this.type()) {
       case 'AUDIT':
-        return "Aucune planification d'audit.";
+        return 'min-w-[88rem]';
       case 'ENGINEERING':
-        return 'Aucune planification veille.';
-      case 'MONITORING':
-        return 'Aucune planification monitoring.';
+        return 'min-w-[76rem]';
       default:
-        return 'Aucune planification projet.';
+        return 'min-w-[72rem]';
     }
+  }
+
+  /** Message lorsqu’il n’existe aucune planification pour l’onglet courant. */
+  emptyCatalogMessage(): string {
+    switch (this.type()) {
+      case 'AUDIT':
+        return "Aucune planification d'audit";
+      case 'ENGINEERING':
+        return 'Aucune planification veille';
+      case 'MONITORING':
+        return 'Aucune planification monitoring';
+      default:
+        return 'Aucune planification projet';
+    }
+  }
+
+  /** Message lorsque des filtres masquent toutes les lignes. */
+  tableFilterEmptyMessage(): string {
+    return 'Aucun résultat pour la recherche.';
   }
 
   taskSecondaryInfo(task: PlanTask): string {
@@ -239,12 +261,12 @@ export class PlanificationListComponent {
     }
   }
 
-  constructor(
-    private planService: PlanificationService,
-    private router: Router,
-    private settingsService: SettingsService,
-    private dialog: MatDialog,
-  ) {
+  ngOnInit(): void {
+    this.planService.refreshTasks();
+    this.productionService.refreshItems();
+  }
+
+  constructor() {
     this.dataSource.filterPredicate = (task: PlanTask, raw: string) => {
       const f = decodeTableFilter(raw);
       if (f.projectId && task.projectId !== f.projectId) {
@@ -286,7 +308,7 @@ export class PlanificationListComponent {
       this.filterEquipmentState.set('');
       this.filterTopic.set('');
       this.syncTableFilter();
-    });
+    }, { allowSignalWrites: true });
 
     effect(() => {
       const rows = this.filteredTasks();
@@ -439,7 +461,7 @@ export class PlanificationListComponent {
       width: '400px',
       data: {
         title: 'Supprimer la planification',
-        message: `Supprimer « ${task.projectLabel} » ? Cette action est irréversible.`,
+        message: `Supprimer « ${this.projectDisplayLabel(task)} » ? Cette action est irréversible.`,
         isDelete: true,
         confirmText: 'Supprimer',
       },
@@ -452,8 +474,38 @@ export class PlanificationListComponent {
   }
 
   ownerLabel(ownerId: string): string {
+    if (!ownerId?.trim()) {
+      return '—';
+    }
     const u = this.settingsService.usersForSelect().find((user) => user.id === ownerId);
-    return u?.name?.trim() || [u?.firstName, u?.lastName].filter(Boolean).join(' ').trim() || u?.email || ownerId;
+    return u?.name?.trim() || [u?.firstName, u?.lastName].filter(Boolean).join(' ').trim() || u?.email || '—';
+  }
+
+  projectDisplayLabel(task: PlanTask): string {
+    const label = task.projectLabel?.trim();
+    if (label) {
+      return label;
+    }
+    const prod = this.productionService
+      .allProductionItems()
+      .find((item) => item.id === task.projectId);
+    return prod?.libelle?.trim() || task.projectId?.trim() || '—';
+  }
+
+  planDate(value: unknown): Date | null {
+    if (value == null || value === '') {
+      return null;
+    }
+    const d = value instanceof Date ? value : new Date(value as string);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  progressValue(task: PlanTask): number {
+    const n = Number(task.progress);
+    if (Number.isNaN(n)) {
+      return 0;
+    }
+    return Math.min(100, Math.max(0, n));
   }
 
   resourceAffectedCell(task: PlanTask): string {
