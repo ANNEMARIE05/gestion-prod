@@ -8,10 +8,10 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { AuthService } from '../../../services/auth.service';
-import { AuthStateService } from '../../../services/auth-state.service';
-import { ErrorHandlerService } from '../../../services/error-handler.service';
-import { SettingsService } from '../../../services/settings.service';
+import { AuthService } from '../services/auth.service';
+import { AuthStateService } from '../services/auth-state.service';
+import { ErrorHandlerService } from '../../../core/services/error-handler.service';
+import { SettingsService } from '../../settings/services/settings.service';
 import { getLandingRoute } from '../../../utils/app-routes';
 
 /** Délai après succès avant navigation (laisse l'animation se lire). */

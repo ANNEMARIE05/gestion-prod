@@ -12,9 +12,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { PlanificationAuditService } from '../../../services/planificationAudit.service';
-import { ErrorHandlerService } from '../../../services/error-handler.service';
-import { PermissionService } from '../../../services/permission.service';
+import { PlanificationAuditService } from '../services/planificationAudit.service';
+import { ErrorHandlerService } from '../../../core/services/error-handler.service';
+import { PermissionService } from '../../../core/services/permission.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { APP_ROUTES } from '../../../utils/app-routes';
 

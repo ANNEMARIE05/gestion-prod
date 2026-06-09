@@ -1,0 +1,41 @@
+:host {
+  display: block;
+}
+
+.planification-table {
+  .mat-mdc-header-cell,
+  .mat-mdc-cell {
+    padding-top: 0.9rem !important;
+    padding-bottom: 0.9rem !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  .mat-mdc-header-cell:first-child,
+  .mat-mdc-cell:first-child {
+    padding-left: 1.25rem !important;
+  }
+
+  .mat-mdc-header-cell:last-child,
+  .mat-mdc-cell:last-child {
+    padding-right: 1.25rem !important;
+  }
+}
+
+.planification-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.125rem;
+  min-width: 7.5rem;
+
+  .mat-mdc-icon-button {
+    flex-shrink: 0;
+  }
+
+  mat-icon {
+    font-family: 'Material Icons' !important;
+  }
+}

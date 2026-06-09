@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { AuthStateService } from '../../services/auth-state.service';
+import { AuthStateService } from '../auth/services/auth-state.service';
 import { APP_ROUTES, getLandingRoute } from '../../utils/app-routes';
 
 @Component({

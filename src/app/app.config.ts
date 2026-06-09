@@ -5,8 +5,8 @@ import { HttpClient, HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common
 import { firstValueFrom } from 'rxjs';
 
 import { routes } from './app.routes';
-import { HttpErrorInterceptor } from './interceptors/http-error.interceptor';
-import { LoaderInterceptor } from './interceptors/loader.interceptor';
+import { HttpErrorInterceptor } from './core/interceptors/http-error.interceptor';
+import { LoaderInterceptor } from './core/interceptors/loader.interceptor';
 
 export function appConfigFactory(http: HttpClient) {
   return () =>

@@ -3,12 +3,12 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { TopbarComponent } from '../topbar/topbar.component';
-import { LayoutService } from '../../services/layout.service';
-import { SettingsService } from '../../services/settings.service';
-import { PermissionService } from '../../services/permission.service';
-import { ProductionService } from '../../services/production.service';
-import { PlanificationService } from '../../services/planification.service';
-import { AuditTrailService } from '../../services/audit-trail.service';
+import { LayoutService } from '../../core/services/layout.service';
+import { SettingsService } from '../../features/settings/services/settings.service';
+import { PermissionService } from '../../core/services/permission.service';
+import { ProductionService } from '../../features/production/services/production.service';
+import { PlanificationService } from '../../features/planification/services/planification.service';
+import { AuditTrailService } from '../../features/audit-trail/services/audit-trail.service';
 
 @Component({
   selector: 'app-main-shell',

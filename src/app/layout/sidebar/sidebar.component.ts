@@ -6,10 +6,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { filter, Subscription } from 'rxjs';
-import { PermissionService } from '../../services/permission.service';
-import { LayoutService } from '../../services/layout.service';
-import { AuthService } from '../../services/auth.service';
-import { normalizeMenuRoute, menuLienGrantsPath } from '../../utils/app-routes';
+import { PermissionService } from '../../core/services/permission.service';
+import { LayoutService } from '../../core/services/layout.service';
+import { AuthService } from '../../features/auth/services/auth.service';
+import { normalizeMenuRoute, menuLienGrantsPath, APP_ROUTES } from '../../utils/app-routes';
 import { MenuItem } from '../../models/menu';
 
 @Component({
@@ -29,7 +29,48 @@ export class SidebarComponent implements OnInit, OnDestroy {
   // affichée en pleine largeur (jamais repliée).
   mobile = input<boolean>(false);
 
-  menus = this.permissionService.visibleMenus;
+  /**
+   * Item « Mon profil » toujours affiché : l'édition de ses propres
+   * informations ne dépend pas des habilitations.
+   */
+  private readonly profileMenuItem: MenuItem = {
+    id: 'mon-profil',
+    label: 'Mon profil',
+    icon: 'person',
+    route: APP_ROUTES.monProfil,
+    active: true,
+  };
+
+  currentUser = this.authService.currentUser;
+
+  profileName = computed(() => {
+    const profil = this.authService.userInfos()?.profil;
+    const label =
+      (typeof profil === 'object' ? profil?.libelle ?? profil?.code : undefined) ??
+      this.authService.currentUser()?.profileId ??
+      '';
+    return String(label).trim() || 'Profil';
+  });
+
+  profileInitials = computed(() => {
+    const name = this.profileName();
+    const initials = name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((word) => word.charAt(0))
+      .join('');
+    return (initials || name.charAt(0) || '?').toUpperCase();
+  });
+
+  menus = computed<MenuItem[]>(() => {
+    const dynamicMenus = this.permissionService.visibleMenus();
+    const profileRoute = normalizeMenuRoute(this.profileMenuItem.route);
+    const alreadyPresent = dynamicMenus.some(
+      (item) => normalizeMenuRoute(item.route) === profileRoute,
+    );
+    return alreadyPresent ? dynamicMenus : [...dynamicMenus, this.profileMenuItem];
+  });
   expandedMenus = signal<string[]>([]);
   collapsed = computed(() => (this.mobile() ? false : this.layoutService.sidebarCollapsed()));
 

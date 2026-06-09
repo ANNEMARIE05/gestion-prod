@@ -6,7 +6,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import {
   AuditTrailService,
   AuditEntry,
-} from '../../services/audit-trail.service';
+} from './services/audit-trail.service';
 
 @Component({
   selector: 'app-audit-trail',

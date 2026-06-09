@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { APP_ROUTES } from '../../utils/app-routes';
-import { PermissionService } from '../../services/permission.service';
+import { PermissionService } from '../../core/services/permission.service';
 
 @Component({
   selector: 'app-bienvenue',

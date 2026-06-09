@@ -2,9 +2,9 @@ import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { ProductionService } from '../../services/production.service';
-import { PlanificationService } from '../../services/planification.service';
-import { StatistiquesService, StatistiquesResponse } from '../../services/statistiques.service';
+import { ProductionService } from '../production/services/production.service';
+import { PlanificationService } from '../planification/services/planification.service';
+import { StatistiquesService, StatistiquesResponse } from '../settings/services/statistiques.service';
 import { ProductionItem, ProductionType } from '../../models/production';
 
 function countByType(items: ProductionItem[], type: ProductionType): number {

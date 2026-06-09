@@ -6,8 +6,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { AuthService } from '../../services/auth.service';
-import { LayoutService } from '../../services/layout.service';
+import { AuthService } from '../../features/auth/services/auth.service';
+import { LayoutService } from '../../core/services/layout.service';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
@@ -27,7 +27,7 @@ export class TopbarComponent {
   constructor(
     private authService: AuthService,
     private dialog: MatDialog,
-  ) {}
+  ) { }
 
   toggleSidebar() {
     this.layoutService.toggleSidebar();

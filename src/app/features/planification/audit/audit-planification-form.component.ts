@@ -4,8 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { PlanificationAuditService } from '../../../services/planificationAudit.service';
-import { ErrorHandlerService } from '../../../services/error-handler.service';
+import { PlanificationAuditService } from '../services/planificationAudit.service';
+import { ErrorHandlerService } from '../../../core/services/error-handler.service';
 import { APP_ROUTES } from '../../../utils/app-routes';
 
 interface AuditInformatiqueForm {

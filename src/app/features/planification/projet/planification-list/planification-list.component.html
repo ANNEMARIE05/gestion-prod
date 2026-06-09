@@ -1,0 +1,830 @@
+@if (isLoading) {
+  <app-loading-skeleton-table [cols]="9"></app-loading-skeleton-table>
+} @else {
+  <div class="space-y-4">
+    <div class="app-list-toolbar app-list-toolbar--filters-only">
+      <div class="app-search-shell">
+        <mat-icon class="text-gray-400 mr-3">search</mat-icon>
+        <input
+          (keyup)="applyFilter($event)"
+          placeholder="Libellé, responsable…"
+          class="app-search-input"
+        />
+      </div>
+      <div class="app-list-filters flex-wrap">
+        @if (type() === 'PROJECT' || type() === 'MONITORING') {
+          <mat-form-field
+            appearance="outline"
+            class="app-filter-field"
+            subscriptSizing="dynamic"
+          >
+            <mat-select
+              [attr.aria-label]="parentFilterLabel()"
+              panelClass="app-filter-select-panel"
+              [value]="filterProjectId()"
+              (selectionChange)="
+                filterProjectId.set($event.value); syncTableFilter()
+              "
+            >
+              <mat-select-trigger>
+                @if (parentFilterTrigger(); as pt) {
+                  <span class="app-select-trigger-row">
+                    <span class="app-select-trigger-row__primary">{{ pt.primary }}</span>
+                  </span>
+                } @else {
+                  <span class="app-select-trigger-row app-select-trigger-row--empty">
+                    <span class="app-select-trigger-row__primary">{{ parentFilterLabel() }}</span>
+                  </span>
+                }
+              </mat-select-trigger>
+              <mat-option value="">
+                <span class="app-select-option-row">
+                  <span class="app-select-option-row__primary">Tous</span>
+                </span>
+              </mat-option>
+              @for (opt of parentTaskOptions(); track opt.id) {
+                <mat-option [value]="opt.id">
+                  <span class="app-select-option-row">
+                    <span class="app-select-option-row__primary">{{ opt.label }}</span>
+                  </span>
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field
+            appearance="outline"
+            class="app-filter-field"
+            subscriptSizing="dynamic"
+          >
+            <mat-select
+              aria-label="Spécialité"
+              panelClass="app-filter-select-panel"
+              [value]="filterSpecialtyId()"
+              (selectionChange)="
+                filterSpecialtyId.set($event.value); syncTableFilter()
+              "
+            >
+              <mat-select-trigger>
+                @if (specialtyFilterTrigger(); as sp) {
+                  <span class="app-select-trigger-row">
+                    <span class="app-select-trigger-row__primary">{{ sp.primary }}</span>
+                  </span>
+                } @else {
+                  <span class="app-select-trigger-row app-select-trigger-row--empty">
+                    <span class="app-select-trigger-row__primary">Spécialité</span>
+                  </span>
+                }
+              </mat-select-trigger>
+              <mat-option value="">
+                <span class="app-select-option-row">
+                  <span class="app-select-option-row__primary">Toutes les spécialités</span>
+                </span>
+              </mat-option>
+              @for (s of specialtySelectOptions(); track s.id) {
+                <mat-option [value]="s.id">
+                  <span class="app-select-option-row">
+                    <span class="app-select-option-row__primary">{{ s.label }}</span>
+                  </span>
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field
+            appearance="outline"
+            class="app-filter-field"
+            subscriptSizing="dynamic"
+          >
+            <mat-select
+              aria-label="Statut"
+              panelClass="app-filter-select-panel"
+              [value]="filterStatus()"
+              (selectionChange)="
+                filterStatus.set($event.value); syncTableFilter()
+              "
+            >
+              <mat-select-trigger>
+                @if (statusFilterTrigger(); as st) {
+                  <span class="app-select-trigger-row">
+                    <span class="app-select-trigger-row__primary">{{ st.primary }}</span>
+                  </span>
+                } @else {
+                  <span class="app-select-trigger-row app-select-trigger-row--empty">
+                    <span class="app-select-trigger-row__primary">Statut</span>
+                  </span>
+                }
+              </mat-select-trigger>
+              <mat-option value="">
+                <span class="app-select-option-row">
+                  <span class="app-select-option-row__primary">Tous les statuts</span>
+                </span>
+              </mat-option>
+              @for (opt of statusFilterOptions(); track opt.value) {
+                <mat-option [value]="opt.value">
+                  <span class="app-select-option-row">
+                    <span class="app-select-option-row__primary">{{ opt.label }}</span>
+                  </span>
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+
+        @if (type() === 'AUDIT') {
+          <mat-form-field
+            appearance="outline"
+            class="app-filter-field"
+            subscriptSizing="dynamic"
+          >
+            <mat-select
+              aria-label="Audit"
+              panelClass="app-filter-select-panel"
+              [value]="filterProjectId()"
+              (selectionChange)="
+                filterProjectId.set($event.value); syncTableFilter()
+              "
+            >
+              <mat-select-trigger>
+                @if (parentFilterTrigger(); as pt) {
+                  <span class="app-select-trigger-row">
+                    <span class="app-select-trigger-row__primary">{{ pt.primary }}</span>
+                  </span>
+                } @else {
+                  <span class="app-select-trigger-row app-select-trigger-row--empty">
+                    <span class="app-select-trigger-row__primary">Audit</span>
+                  </span>
+                }
+              </mat-select-trigger>
+              <mat-option value="">
+                <span class="app-select-option-row">
+                  <span class="app-select-option-row__primary">Tous les audits</span>
+                </span>
+              </mat-option>
+              @for (opt of parentTaskOptions(); track opt.id) {
+                <mat-option [value]="opt.id">
+                  <span class="app-select-option-row">
+                    <span class="app-select-option-row__primary">{{ opt.label }}</span>
+                  </span>
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field
+            appearance="outline"
+            class="app-filter-field"
+            subscriptSizing="dynamic"
+          >
+            <mat-select
+              aria-label="Spécialité"
+              panelClass="app-filter-select-panel"
+              [value]="filterSpecialtyId()"
+              (selectionChange)="
+                filterSpecialtyId.set($event.value); syncTableFilter()
+              "
+            >
+              <mat-select-trigger>
+                @if (specialtyFilterTrigger(); as sp) {
+                  <span class="app-select-trigger-row">
+                    <span class="app-select-trigger-row__primary">{{ sp.primary }}</span>
+                  </span>
+                } @else {
+                  <span class="app-select-trigger-row app-select-trigger-row--empty">
+                    <span class="app-select-trigger-row__primary">Spécialité</span>
+                  </span>
+                }
+              </mat-select-trigger>
+              <mat-option value="">
+                <span class="app-select-option-row">
+                  <span class="app-select-option-row__primary">Toutes les spécialités</span>
+                </span>
+              </mat-option>
+              @for (s of specialtySelectOptions(); track s.id) {
+                <mat-option [value]="s.id">
+                  <span class="app-select-option-row">
+                    <span class="app-select-option-row__primary">{{ s.label }}</span>
+                  </span>
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field
+            appearance="outline"
+            class="app-filter-field"
+            subscriptSizing="dynamic"
+          >
+            <mat-select
+              aria-label="État équipement"
+              panelClass="app-filter-select-panel"
+              [value]="filterEquipmentState()"
+              (selectionChange)="
+                filterEquipmentState.set($event.value); syncTableFilter()
+              "
+            >
+              <mat-select-trigger>
+                @if (equipmentStateFilterTrigger(); as es) {
+                  <span class="app-select-trigger-row">
+                    <span class="app-select-trigger-row__primary">{{ es.primary }}</span>
+                  </span>
+                } @else {
+                  <span class="app-select-trigger-row app-select-trigger-row--empty">
+                    <span class="app-select-trigger-row__primary">État</span>
+                  </span>
+                }
+              </mat-select-trigger>
+              <mat-option value="">
+                <span class="app-select-option-row">
+                  <span class="app-select-option-row__primary">Tous les états</span>
+                </span>
+              </mat-option>
+              @for (opt of auditStateFilterOptions; track opt.value) {
+                <mat-option [value]="opt.value">
+                  <span class="app-select-option-row">
+                    <span class="app-select-option-row__primary">{{ opt.label }}</span>
+                  </span>
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+
+        @if (type() === 'ENGINEERING') {
+          <mat-form-field
+            appearance="outline"
+            class="app-filter-field"
+            subscriptSizing="dynamic"
+          >
+            <mat-select
+              aria-label="Veille"
+              panelClass="app-filter-select-panel"
+              [value]="filterProjectId()"
+              (selectionChange)="
+                filterProjectId.set($event.value); syncTableFilter()
+              "
+            >
+              <mat-select-trigger>
+                @if (parentFilterTrigger(); as pt) {
+                  <span class="app-select-trigger-row">
+                    <span class="app-select-trigger-row__primary">{{ pt.primary }}</span>
+                  </span>
+                } @else {
+                  <span class="app-select-trigger-row app-select-trigger-row--empty">
+                    <span class="app-select-trigger-row__primary">Veille</span>
+                  </span>
+                }
+              </mat-select-trigger>
+              <mat-option value="">
+                <span class="app-select-option-row">
+                  <span class="app-select-option-row__primary">Toutes les veilles</span>
+                </span>
+              </mat-option>
+              @for (opt of parentTaskOptions(); track opt.id) {
+                <mat-option [value]="opt.id">
+                  <span class="app-select-option-row">
+                    <span class="app-select-option-row__primary">{{ opt.label }}</span>
+                  </span>
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field
+            appearance="outline"
+            class="app-filter-field"
+            subscriptSizing="dynamic"
+          >
+            <mat-select
+              aria-label="Thématique"
+              panelClass="app-filter-select-panel"
+              [value]="filterTopic()"
+              (selectionChange)="
+                filterTopic.set($event.value); syncTableFilter()
+              "
+            >
+              <mat-select-trigger>
+                @if (topicFilterTrigger(); as tp) {
+                  <span class="app-select-trigger-row">
+                    <span class="app-select-trigger-row__primary">{{ tp.primary }}</span>
+                  </span>
+                } @else {
+                  <span class="app-select-trigger-row app-select-trigger-row--empty">
+                    <span class="app-select-trigger-row__primary">Thématique</span>
+                  </span>
+                }
+              </mat-select-trigger>
+              <mat-option value="">
+                <span class="app-select-option-row">
+                  <span class="app-select-option-row__primary">Toutes les thématiques</span>
+                </span>
+              </mat-option>
+              @for (opt of topicFilterOptions; track opt.value) {
+                <mat-option [value]="opt.value">
+                  <span class="app-select-option-row">
+                    <span class="app-select-option-row__primary">{{ opt.label }}</span>
+                  </span>
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field
+            appearance="outline"
+            class="app-filter-field"
+            subscriptSizing="dynamic"
+          >
+            <mat-select
+              aria-label="Spécialité"
+              panelClass="app-filter-select-panel"
+              [value]="filterSpecialtyId()"
+              (selectionChange)="
+                filterSpecialtyId.set($event.value); syncTableFilter()
+              "
+            >
+              <mat-select-trigger>
+                @if (specialtyFilterTrigger(); as sp) {
+                  <span class="app-select-trigger-row">
+                    <span class="app-select-trigger-row__primary">{{ sp.primary }}</span>
+                  </span>
+                } @else {
+                  <span class="app-select-trigger-row app-select-trigger-row--empty">
+                    <span class="app-select-trigger-row__primary">Spécialité</span>
+                  </span>
+                }
+              </mat-select-trigger>
+              <mat-option value="">
+                <span class="app-select-option-row">
+                  <span class="app-select-option-row__primary">Toutes les spécialités</span>
+                </span>
+              </mat-option>
+              @for (s of specialtySelectOptions(); track s.id) {
+                <mat-option [value]="s.id">
+                  <span class="app-select-option-row">
+                    <span class="app-select-option-row__primary">{{ s.label }}</span>
+                  </span>
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field
+            appearance="outline"
+            class="app-filter-field"
+            subscriptSizing="dynamic"
+          >
+            <mat-select
+              aria-label="Statut"
+              panelClass="app-filter-select-panel"
+              [value]="filterStatus()"
+              (selectionChange)="
+                filterStatus.set($event.value); syncTableFilter()
+              "
+            >
+              <mat-select-trigger>
+                @if (statusFilterTrigger(); as st) {
+                  <span class="app-select-trigger-row">
+                    <span class="app-select-trigger-row__primary">{{ st.primary }}</span>
+                  </span>
+                } @else {
+                  <span class="app-select-trigger-row app-select-trigger-row--empty">
+                    <span class="app-select-trigger-row__primary">Statut</span>
+                  </span>
+                }
+              </mat-select-trigger>
+              <mat-option value="">
+                <span class="app-select-option-row">
+                  <span class="app-select-option-row__primary">Tous les statuts</span>
+                </span>
+              </mat-option>
+              @for (opt of statusFilterOptions(); track opt.value) {
+                <mat-option [value]="opt.value">
+                  <span class="app-select-option-row">
+                    <span class="app-select-option-row__primary">{{ opt.label }}</span>
+                  </span>
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+
+        @if (type() === 'PROJECT') {
+          <button
+            *appHasPermission="'TELECHARGER_MODELE'"
+            mat-stroked-button
+            type="button"
+            (click)="downloadTemplateCsv()"
+            matTooltip="Télécharger le modèle CSV"
+            class="app-toolbar-template-btn"
+          >
+            <mat-icon>download</mat-icon>
+            Télécharger modèle
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (isCatalogEmpty()) {
+      <div class="premium-card bg-white p-12 text-center">
+        <mat-icon class="!w-12 !h-12 !text-[3rem] text-slate-300 mb-3">event_busy</mat-icon>
+        <p class="text-base font-semibold text-gray-700 m-0">
+          {{ emptyCatalogMessage() }}
+        </p>
+        <p class="text-sm text-gray-500 mt-2 m-0">
+          Utilisez le bouton « Planifier » pour créer une entrée.
+        </p>
+      </div>
+    } @else {
+    <div class="premium-card overflow-hidden bg-white">
+      <div class="app-table-scroll">
+      <table mat-table [dataSource]="dataSource" [class]="'planification-table w-full ' + tableMinWidthClass()">
+        <ng-container matColumnDef="index">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold w-14"
+          >
+            N°
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let element; let i = index"
+            class="text-sm text-gray-600 tabular-nums w-14"
+          >
+            {{ rowNumber(i) }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="projectLabel">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold py-4 planification-col-label"
+          >
+            {{ mainColumnLabel() }}
+          </th>
+          <td mat-cell *matCellDef="let element" class="py-4 planification-col-label">
+            <div class="flex flex-col">
+              <span class="text-sm font-bold text-gray-900">{{
+                projectDisplayLabel(element)
+              }}</span>
+              @if (taskSecondaryInfo(element)) {
+                <span class="text-xs text-gray-500 line-clamp-2">{{
+                  taskSecondaryInfo(element)
+                }}</span>
+              }
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="equipmentId">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold"
+          >
+            ID equipement
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let element"
+            class="text-sm font-medium text-gray-800"
+          >
+            {{ element.equipmentId || "-" }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="specialty">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold"
+          >
+            Specialite
+          </th>
+          <td mat-cell *matCellDef="let element" class="text-sm text-gray-600">
+            {{ element.specialtyLabel || "-" }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="equipmentType">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold"
+          >
+            Type equipement
+          </th>
+          <td mat-cell *matCellDef="let element" class="text-sm text-gray-600">
+            {{ equipmentTypeCell(element) }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="assignedResource">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold"
+          >
+            Ressource affectee
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let element"
+            class="text-sm text-gray-700 max-w-[10rem] truncate"
+            [matTooltip]="resourceAffectedCell(element)"
+          >
+            {{ resourceAffectedCell(element) }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="commissioningDate">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold"
+          >
+            Mise en service
+          </th>
+          <td mat-cell *matCellDef="let element" class="text-sm text-gray-600 whitespace-nowrap">
+            @if (planDate(element.commissioningDate); as d) {
+              {{ d | date: "dd/MM/yyyy" }}
+            } @else {
+              <span class="text-gray-400">—</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="equipmentState">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold"
+          >
+            Etat
+          </th>
+          <td mat-cell *matCellDef="let element" class="text-sm text-gray-600">
+            {{ equipmentStateCell(element) }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="identification">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold py-4 planification-col-label"
+          >
+            Identification
+          </th>
+          <td mat-cell *matCellDef="let element" class="py-4 planification-col-label">
+            <span class="text-sm font-bold text-gray-900">{{
+              element.identification || "—"
+            }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="watch">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold py-4 planification-col-label"
+          >
+            Veille
+          </th>
+          <td mat-cell *matCellDef="let element" class="py-4 planification-col-label">
+            <span class="text-sm font-bold text-gray-900">{{
+              element.watchLabel?.trim() || projectDisplayLabel(element)
+            }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="topic">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold"
+          >
+            Thematique
+          </th>
+          <td mat-cell *matCellDef="let element" class="text-sm text-gray-500">
+            {{ topicLabel(element.topic) }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="owner">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold planification-col-owner"
+          >
+            Responsable
+          </th>
+          <td mat-cell *matCellDef="let element" class="planification-col-owner">
+            @if (element.ownerId?.trim()) {
+              <div class="flex items-center gap-2 min-w-0">
+                <div
+                  class="w-8 h-8 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold"
+                >
+                  {{ ownerLabel(element.ownerId).substring(0, 2).toUpperCase() }}
+                </div>
+                <span
+                  class="text-sm font-medium text-gray-900 truncate"
+                  [matTooltip]="ownerLabel(element.ownerId)"
+                >{{ ownerLabel(element.ownerId) }}</span>
+              </div>
+            } @else {
+              <span class="text-sm text-gray-400">—</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="startDate">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold whitespace-nowrap"
+          >
+            Date de début
+          </th>
+          <td mat-cell *matCellDef="let element" class="text-sm text-gray-600 whitespace-nowrap">
+            @if (planDate(element.startDate); as d) {
+              {{ d | date: "dd/MM/yyyy" }}
+            } @else {
+              <span class="text-gray-400">—</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="watchDate">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold"
+          >
+            Date de veille
+          </th>
+          <td mat-cell *matCellDef="let element" class="text-sm text-gray-600 whitespace-nowrap">
+            @if (planDate(element.discoveryDate ?? element.startDate); as d) {
+              {{ d | date: "dd/MM/yyyy" }}
+            } @else {
+              <span class="text-gray-400">—</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="endDate">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold whitespace-nowrap"
+          >
+            Date de fin
+          </th>
+          <td mat-cell *matCellDef="let element" class="text-sm text-gray-600 whitespace-nowrap">
+            @if (planDate(element.expectedEndDate); as d) {
+              {{ d | date: "dd/MM/yyyy" }}
+            } @else {
+              <span class="text-gray-400">—</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="progress">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold planification-col-progress"
+          >
+            État d'avancement
+          </th>
+          <td mat-cell *matCellDef="let element" class="planification-col-progress">
+            <div class="flex items-center gap-2 min-w-[7rem]">
+              <mat-progress-bar
+                mode="determinate"
+                [value]="progressValue(element)"
+                class="h-1.5 rounded-full flex-1 min-w-[4rem]"
+              ></mat-progress-bar>
+              <span class="text-xs font-semibold text-gray-600 tabular-nums shrink-0"
+                >{{ progressValue(element) }}%</span
+              >
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold planification-col-status"
+          >
+            Statut
+          </th>
+          <td mat-cell *matCellDef="let element" class="planification-col-status">
+            <mat-chip-set>
+              <mat-chip
+                class="!text-xs !font-semibold"
+                [ngClass]="{
+                  '!bg-slate-100 !text-slate-700':
+                    element.status === 'TODO' ||
+                    (element.status === 'CANCELLED' &&
+                      (element.type === 'PROJECT' || element.type === 'MONITORING')),
+                  '!bg-amber-50 !text-amber-900':
+                    element.status === 'IN_PROGRESS',
+                  '!bg-emerald-50 !text-emerald-900': element.status === 'DONE',
+                  '!bg-gray-100 !text-gray-600 line-through':
+                    element.status === 'CANCELLED' && element.type === 'ENGINEERING',
+                }"
+              >
+                {{ statusLabel(element.status) }}
+              </mat-chip>
+            </mat-chip-set>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="createdAt">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold whitespace-nowrap"
+          >
+            Date de création
+          </th>
+          <td mat-cell *matCellDef="let element" class="text-sm text-gray-600 whitespace-nowrap">
+            @if (planDate(element.createdAt); as d) {
+              {{ d | date: "dd/MM/yyyy" }}
+            } @else {
+              <span class="text-gray-400">—</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="action">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="!bg-gray-50/50 !text-gray-600 !font-semibold text-right"
+          >
+            Actions
+          </th>
+          <td mat-cell *matCellDef="let element" class="text-right whitespace-nowrap">
+            <div class="planification-actions">
+              <button
+                *appHasPermission="'VOIR'"
+                mat-icon-button
+                type="button"
+                (click)="viewDetails(element)"
+                class="text-gray-400 hover:text-primary transition-colors"
+                matTooltip="Voir détails"
+              >
+                <mat-icon class="!text-lg">visibility</mat-icon>
+              </button>
+              <button
+                *appHasPermission="'MODIFIER'"
+                mat-icon-button
+                type="button"
+                (click)="editTask(element)"
+                class="text-gray-400 hover:text-blue-600 transition-colors"
+                matTooltip="Modifier"
+              >
+                <mat-icon class="!text-lg">edit</mat-icon>
+              </button>
+              <button
+                *appHasPermission="'SUPPRIMER'"
+                mat-icon-button
+                type="button"
+                (click)="deleteTask(element)"
+                class="text-gray-400 hover:text-red-500 transition-colors"
+                matTooltip="Supprimer"
+              >
+                <mat-icon class="!text-lg">delete_outline</mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns"
+          class="hover:bg-gray-50/50 transition-colors"
+        ></tr>
+
+        <tr class="mat-row" *matNoDataRow>
+          <td
+            class="mat-cell p-8 text-center text-gray-500"
+            [attr.colspan]="displayedColumns.length"
+          >
+            {{ tableFilterEmptyMessage() }}
+          </td>
+        </tr>
+      </table>
+      </div>
+
+      <mat-paginator
+        [pageSizeOptions]="[5, 10, 25]"
+        aria-label="Sélectionner la page"
+      ></mat-paginator>
+    </div>
+    }
+  </div>
+}

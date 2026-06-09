@@ -1,22 +1,18 @@
 <mat-toolbar class="!bg-white !h-20 border-b border-gray-100 flex justify-between px-8">
   <div class="flex items-center gap-6">
     <!-- Mobile : ouvre/ferme le tiroir de navigation -->
-    <button mat-icon-button
-            (click)="toggleMobileSidebar()"
-            [matTooltip]="mobileSidebarOpen() ? 'Fermer le menu' : 'Ouvrir le menu'"
-            matTooltipPosition="below"
-            class="lg:!hidden !text-slate-600 hover:!text-primary transition-colors"
-            aria-label="Ouvrir le menu de navigation">
+    <button mat-icon-button (click)="toggleMobileSidebar()"
+      [matTooltip]="mobileSidebarOpen() ? 'Fermer le menu' : 'Ouvrir le menu'" matTooltipPosition="below"
+      class="lg:!hidden !text-slate-600 hover:!text-primary transition-colors"
+      aria-label="Ouvrir le menu de navigation">
       <mat-icon>{{ mobileSidebarOpen() ? 'menu_open' : 'menu' }}</mat-icon>
     </button>
 
     <!-- Desktop : replie/déplie la sidebar -->
-    <button mat-icon-button
-            (click)="toggleSidebar()"
-            [matTooltip]="sidebarCollapsed() ? 'Déplier la sidebar' : 'Replier la sidebar'"
-            matTooltipPosition="below"
-            class="!hidden lg:!inline-flex !text-slate-600 hover:!text-primary transition-colors"
-            aria-label="Basculer la sidebar">
+    <button mat-icon-button (click)="toggleSidebar()"
+      [matTooltip]="sidebarCollapsed() ? 'Déplier la sidebar' : 'Replier la sidebar'" matTooltipPosition="below"
+      class="!hidden lg:!inline-flex !text-slate-600 hover:!text-primary transition-colors"
+      aria-label="Basculer la sidebar">
       <mat-icon>{{ sidebarCollapsed() ? 'menu_open' : 'menu' }}</mat-icon>
     </button>
     <div class="hidden sm:flex items-center text-sm text-gray-500 gap-3 font-medium">
@@ -33,8 +29,9 @@
       <div class="flex flex-col items-end text-right hidden sm:flex">
         <span class="text-sm font-black text-gray-900 leading-none">{{currentUser()?.name}}</span>
       </div>
-      <div class="w-10 h-10 rounded-xl bg-primary shadow-lg shadow-primary/20 flex items-center justify-center text-white text-sm font-black">
-        {{currentUser()?.avatar}}
+      <div
+        class="w-10 h-10 rounded-xl bg-primary shadow-lg shadow-primary/20 flex items-center justify-center text-white text-sm font-black">
+        <mat-icon class="!text-white !text-xl !w-5 !h-5 flex items-center">person</mat-icon>
       </div>
     </div>
 

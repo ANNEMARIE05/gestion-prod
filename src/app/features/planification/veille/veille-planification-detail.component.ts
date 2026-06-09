@@ -3,9 +3,9 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { PlanificationVeilleService } from '../../../services/planificationVeille.service';
-import { ErrorHandlerService } from '../../../services/error-handler.service';
-import { PermissionService } from '../../../services/permission.service';
+import { PlanificationVeilleService } from '../services/planificationVeille.service';
+import { ErrorHandlerService } from '../../../core/services/error-handler.service';
+import { PermissionService } from '../../../core/services/permission.service';
 import { APP_ROUTES } from '../../../utils/app-routes';
 
 interface VeilleDetail {
