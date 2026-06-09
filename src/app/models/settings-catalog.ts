@@ -2,6 +2,7 @@
 
 export interface Entity {
   id: string;
+  code?: string;
   name: string;
   icon: string;
   active: boolean;
@@ -12,6 +13,7 @@ export interface Entity {
 
 export interface Specialty {
   id: string;
+  code?: string;
   label: string;
   icon: string;
   active: boolean;

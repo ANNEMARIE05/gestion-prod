@@ -9,40 +9,58 @@
       </p>
     </div>
     <div class="flex flex-wrap items-center gap-3">
-      <button
-        mat-stroked-button
-        type="button"
-        class="!rounded-2xl !border-slate-200 !text-slate-600 !py-4 !px-5 !mb-1 bg-white shadow-sm"
-      >
-        <mat-icon class="mr-2">upload_file</mat-icon>
-        Importer
-      </button>
-      <button
-        mat-stroked-button
-        type="button"
-        class="!rounded-2xl !border-slate-200 !text-slate-600 !py-4 !px-5 !mb-1 bg-white shadow-sm"
-      >
-        <mat-icon class="mr-2">file_download</mat-icon>
-        Exporter
-      </button>
-      <button
-        mat-stroked-button
-        type="button"
-        class="!rounded-2xl !border-slate-200 !text-slate-600 !py-4 !px-5 !mb-1 bg-white shadow-sm"
-      >
-        <mat-icon class="mr-2">download</mat-icon>
-        Télécharger modèle
-      </button>
-      <button
-        mat-flat-button
-        color="primary"
-        type="button"
-        routerLink="/utilisateurs/profils/nouveau"
-        class="!rounded-2xl !px-7 !py-4 !mb-1 shadow-xl shadow-indigo-200"
-      >
-        <mat-icon class="mr-2">add</mat-icon>
-        Nouveau profil
-      </button>
+      @if (perm.canImport()) {
+        <input
+          #csvInput
+          type="file"
+          accept=".csv"
+          class="hidden"
+          (change)="importCsv($event)"
+        />
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="csvInput.click()"
+          class="!rounded-2xl !border-slate-200 !text-slate-600 !py-4 !px-5 !mb-1 bg-white shadow-sm"
+        >
+          <mat-icon class="mr-2">upload_file</mat-icon>
+          Importer
+        </button>
+      }
+      @if (perm.canExport()) {
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="exportCsv()"
+          class="!rounded-2xl !border-slate-200 !text-slate-600 !py-4 !px-5 !mb-1 bg-white shadow-sm"
+        >
+          <mat-icon class="mr-2">file_download</mat-icon>
+          Exporter
+        </button>
+      }
+      @if (perm.canDownloadTemplate()) {
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="downloadTemplateCsv()"
+          class="!rounded-2xl !border-slate-200 !text-slate-600 !py-4 !px-5 !mb-1 bg-white shadow-sm"
+        >
+          <mat-icon class="mr-2">download</mat-icon>
+          Télécharger modèle
+        </button>
+      }
+      @if (perm.canCreate()) {
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          routerLink="/utilisateurs/profils/create"
+          class="!rounded-2xl !px-7 !py-4 !mb-1 shadow-xl shadow-indigo-200"
+        >
+          <mat-icon class="mr-2">add</mat-icon>
+          Nouveau profil
+        </button>
+      }
     </div>
   </div>
 

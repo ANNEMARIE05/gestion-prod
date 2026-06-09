@@ -1,4 +1,5 @@
-import { Component, Input, signal, ViewChild, effect, OnChanges, SimpleChanges, OnInit, AfterViewInit } from '@angular/core';
+import { Component, Input, inject, signal, ViewChild, effect, OnChanges, SimpleChanges, OnInit, AfterViewInit } from '@angular/core';
+import { PermissionService } from '../../../services/permission.service';
 import { CommonModule } from '@angular/common';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -8,8 +9,15 @@ import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { Router, RouterModule } from '@angular/router';
 import { ProductionType, ProductionItem } from '../../../models/production';
+import {
+  productionListRoute,
+  productionCreateRoute,
+  productionDetailRoute,
+  productionEditRoute,
+} from '../../../utils/app-routes';
 import { ProductionService } from '../../../services/production.service';
 import { SettingsService } from '../../../services/settings.service';
+import { ErrorHandlerService } from '../../../services/error-handler.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { LoadingSkeletonTableComponent } from '../../../shared/components/loading-skeleton-table/loading-skeleton-table.component';
 import { encodeTableFilter, decodeTableFilter } from '../../../utils/table-filter';
@@ -32,6 +40,8 @@ import { encodeTableFilter, decodeTableFilter } from '../../../utils/table-filte
   styleUrl: './project-list.component.scss'
 })
 export class ProjectListComponent implements OnChanges, OnInit, AfterViewInit {
+  readonly perm = inject(PermissionService);
+
   @Input() type: ProductionType = 'PROJECT';
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -49,7 +59,8 @@ export class ProjectListComponent implements OnChanges, OnInit, AfterViewInit {
     private productionService: ProductionService,
     private settingsService: SettingsService,
     private dialog: MatDialog,
-    private router: Router
+    private router: Router,
+    private errorHandler: ErrorHandlerService
   ) {
     this.dataSource.filterPredicate = (item: ProductionItem, raw: string) => {
       const f = decodeTableFilter(raw);
@@ -85,9 +96,14 @@ export class ProjectListComponent implements OnChanges, OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.typeFilter.set(this.type);
-    window.setTimeout(() => {
-      this.isLoading = false;
-    }, 500);
+    this.productionService.refreshItems().subscribe({
+      next: () => {
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+      },
+    });
   }
 
   ngAfterViewInit() {
@@ -106,11 +122,11 @@ export class ProjectListComponent implements OnChanges, OnInit, AfterViewInit {
   }
 
   openDetail(item: ProductionItem): void {
-    this.router.navigate(['/production/detail', item.id]);
+    void this.router.navigate([productionDetailRoute(item.type, item.id)]);
   }
 
   openEdit(item: ProductionItem): void {
-    this.router.navigate(['/production/edit', item.id]);
+    void this.router.navigate([productionEditRoute(item.type, item.id)]);
   }
 
   confirmDelete(item: ProductionItem): void {
@@ -126,7 +142,9 @@ export class ProjectListComponent implements OnChanges, OnInit, AfterViewInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.productionService.deleteItem(item.id).subscribe();
+        this.productionService.deleteItem(item.id, item.type).subscribe({
+          error: (err) => this.errorHandler.showError(err, 'Échec de la suppression'),
+        });
       }
     });
   }

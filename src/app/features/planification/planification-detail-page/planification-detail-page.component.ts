@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { PlanificationService } from '../../../services/planification.service';
 import { PlanTask } from '../../../models/plan-task';
+import { planificationListRoute, planificationEditRoute } from '../../../utils/app-routes';
 import { SettingsService } from '../../../services/settings.service';
 
 @Component({
@@ -21,17 +22,14 @@ export class PlanificationDetailPageComponent implements OnInit {
   task: PlanTask | null = null;
 
   get backRoute(): string {
-    const type = this.task?.type ?? 'PROJECT';
-    if (type === 'AUDIT') {
-      return '/planification/audits';
+    return planificationListRoute(this.task?.type ?? 'PROJECT');
+  }
+
+  get editRoute(): string {
+    if (!this.task) {
+      return planificationListRoute('PROJECT');
     }
-    if (type === 'ENGINEERING') {
-      return '/planification/veille';
-    }
-    if (type === 'MONITORING') {
-      return '/planification/monitoring';
-    }
-    return '/planification/projets';
+    return planificationEditRoute(this.task.type, this.task.id);
   }
 
   ngOnInit(): void {

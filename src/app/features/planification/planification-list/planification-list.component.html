@@ -407,6 +407,19 @@
             </mat-select>
           </mat-form-field>
         }
+
+        @if (type() === 'PROJECT' && perm.canDownloadTemplate()) {
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="downloadTemplateCsv()"
+            matTooltip="Télécharger le modèle CSV"
+            class="app-toolbar-template-btn"
+          >
+            <mat-icon>download</mat-icon>
+            Télécharger modèle
+          </button>
+        }
       </div>
     </div>
 
@@ -422,7 +435,7 @@
       </div>
     } @else {
     <div class="premium-card overflow-hidden bg-white">
-      <div class="overflow-x-auto">
+      <div class="app-table-scroll">
       <table mat-table [dataSource]="dataSource" [class]="'planification-table w-full ' + tableMinWidthClass()">
         <ng-container matColumnDef="index">
           <th
@@ -754,33 +767,39 @@
           </th>
           <td mat-cell *matCellDef="let element" class="text-right whitespace-nowrap">
             <div class="planification-actions">
-              <button
-                mat-icon-button
-                type="button"
-                (click)="viewDetails(element)"
-                class="text-gray-400 hover:text-primary transition-colors"
-                matTooltip="Voir détails"
-              >
-                <mat-icon class="!text-lg">visibility</mat-icon>
-              </button>
-              <button
-                mat-icon-button
-                type="button"
-                (click)="editTask(element)"
-                class="text-gray-400 hover:text-blue-600 transition-colors"
-                matTooltip="Modifier"
-              >
-                <mat-icon class="!text-lg">edit</mat-icon>
-              </button>
-              <button
-                mat-icon-button
-                type="button"
-                (click)="deleteTask(element)"
-                class="text-gray-400 hover:text-red-500 transition-colors"
+              @if (perm.canView()) {
+                <button
+                  mat-icon-button
+                  type="button"
+                  (click)="viewDetails(element)"
+                  class="text-gray-400 hover:text-primary transition-colors"
+                  matTooltip="Voir détails"
+                >
+                  <mat-icon class="!text-lg">visibility</mat-icon>
+                </button>
+              }
+              @if (perm.canEdit()) {
+                <button
+                  mat-icon-button
+                  type="button"
+                  (click)="editTask(element)"
+                  class="text-gray-400 hover:text-blue-600 transition-colors"
+                  matTooltip="Modifier"
+                >
+                  <mat-icon class="!text-lg">edit</mat-icon>
+                </button>
+              }
+              @if (perm.canDelete()) {
+                <button
+                  mat-icon-button
+                  type="button"
+                  (click)="deleteTask(element)"
+                  class="text-gray-400 hover:text-red-500 transition-colors"
                 matTooltip="Supprimer"
               >
                 <mat-icon class="!text-lg">delete_outline</mat-icon>
               </button>
+              }
             </div>
           </td>
         </ng-container>

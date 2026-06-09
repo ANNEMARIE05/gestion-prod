@@ -7,10 +7,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MenuItem } from '../../../models/menu';
-import { AppAction } from '../../../models/authorization';
+import { MenuAssignedAction } from '../../../models/authorization';
+import { ErrorHandlerService } from '../../../services/error-handler.service';
 import { SettingsService } from '../../../services/settings.service';
-import { flattenMenuWithDepth } from '../../../utils/menu-tree';
+import { PermissionService } from '../../../services/permission.service';
+import { findParentIdOf, flattenMenuWithDepth } from '../../../utils/menu-tree';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 interface MenuRow {
@@ -18,10 +21,12 @@ interface MenuRow {
   label: string;
   icon: string;
   route: string;
+  parentLabel: string;
   active: boolean;
+  createdAt?: Date;
   depth: number;
   raw: MenuItem;
-  habActions: AppAction[];
+  habActions: MenuAssignedAction[];
 }
 
 @Component({
@@ -40,30 +45,46 @@ interface MenuRow {
   templateUrl: './menus-page.component.html',
 })
 export class MenusPageComponent implements AfterViewInit {
+  readonly perm = inject(PermissionService);
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   readonly settings = inject(SettingsService);
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly errorHandler = inject(ErrorHandlerService);
 
-  readonly displayedColumns: string[] = ['numero', 'label', 'icon', 'route', 'habilitations', 'active', 'actions'];
+  readonly displayedColumns: string[] = [
+    'numero',
+    'label',
+    'icon',
+    'route',
+    'parent',
+    'habilitations',
+    'active',
+    'createdAt',
+    'actions',
+  ];
   readonly dataSource = new MatTableDataSource<MenuRow>([]);
 
   readonly rows = computed<MenuRow[]>(() => {
-    const hab = this.settings.allHabilitation();
-    const allActions = this.settings.allActions();
-    const actionsById = new Map(allActions.map((a) => [a.id, a]));
-    return flattenMenuWithDepth(this.settings.allMenus()).map(({ item, depth }) => {
-      const ids = hab[item.id] ?? [];
-      const habActions = ids
-        .map((id) => actionsById.get(id))
-        .filter((a): a is AppAction => !!a);
+    this.settings.allMenuAssignedActions();
+    const roots = this.settings.allMenus();
+    return flattenMenuWithDepth(roots).map(({ item, depth }) => {
+      const habActions = this.settings.getAssignedActionsForMenu(item.id);
+      const parentId = findParentIdOf(roots, item.id);
+      const parentLabel = parentId
+        ? (this.settings.getMenuById(parentId)?.label ?? '—')
+        : '—';
       return {
         id: item.id,
         label: item.label,
         icon: item.icon,
         route: item.route,
+        parentLabel,
         active: item.active,
+        createdAt: item.createdAt,
         depth,
         raw: item,
         habActions,
@@ -75,7 +96,7 @@ export class MenusPageComponent implements AfterViewInit {
     this.dataSource.filterPredicate = (row: MenuRow, filter: string) => {
       const q = filter.trim().toLowerCase();
       if (!q) return true;
-      return [row.label, row.icon, row.route, ...row.habActions.map((a) => `${a.label} ${a.code}`)]
+      return [row.label, row.icon, row.route, ...row.habActions.map((a) => a.actionId)]
         .join(' ')
         .toLowerCase()
         .includes(q);
@@ -104,11 +125,15 @@ export class MenusPageComponent implements AfterViewInit {
   }
 
   habTooltip(row: MenuRow): string {
-    return row.habActions.map((a) => `${a.label} (${a.code})`).join(', ');
+    return row.habActions.map((a) => a.actionId).join(', ');
+  }
+
+  goToDetail(row: MenuRow): void {
+    void this.router.navigate(['/parametrages/menus', row.id]);
   }
 
   goToEdit(row: MenuRow): void {
-    void this.router.navigate(['/settings/menus/edit', row.id]);
+    void this.router.navigate(['/parametrages/menus/edit', row.id]);
   }
 
   remove(row: MenuRow): void {
@@ -122,9 +147,12 @@ export class MenusPageComponent implements AfterViewInit {
       },
     });
     dialogRef.afterClosed().subscribe((ok: boolean) => {
-      if (ok) {
-        this.settings.deleteMenuItem(row.id);
-      }
+      if (!ok) return;
+      this.settings.deleteMenuItem(row.id).subscribe({
+        next: () => this.snackBar.open('Menu supprimé avec succès', 'Fermer', { duration: 3000 }),
+        error: (err: unknown) =>
+          this.snackBar.open(this.errorHandler.getErrorMessage(err), 'Fermer', { duration: 5000 }),
+      });
     });
   }
 }

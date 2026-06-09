@@ -114,6 +114,34 @@ export function appendRootMenu(items: MenuItem[], item: MenuItem): MenuItem[] {
   return [...items, item];
 }
 
+/** Retourne l'id du menu parent direct, ou null si racine. */
+export function findParentIdOf(items: MenuItem[], id: string): string | null {
+  for (const item of items) {
+    if (item.children?.some((c) => c.id === id)) {
+      return item.id;
+    }
+    if (item.children?.length) {
+      const sub = findParentIdOf(item.children, id);
+      if (sub !== null) {
+        return sub;
+      }
+    }
+  }
+  return null;
+}
+
+/** Ids du menu et de tous ses descendants (évite les cycles parent/enfant). */
+export function collectMenuDescendantIds(root: MenuItem | undefined | null): string[] {
+  if (!root?.children?.length) {
+    return [];
+  }
+  const out: string[] = [];
+  for (const child of root.children) {
+    out.push(child.id, ...collectMenuDescendantIds(child));
+  }
+  return out;
+}
+
 export function flattenMenuWithDepth(
   items: MenuItem[],
   depth = 0,

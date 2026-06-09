@@ -22,6 +22,7 @@ export class TopbarComponent {
 
   currentUser = this.authService.currentUser;
   sidebarCollapsed = this.layoutService.sidebarCollapsed;
+  mobileSidebarOpen = this.layoutService.mobileSidebarOpen;
 
   constructor(
     private authService: AuthService,
@@ -30,6 +31,10 @@ export class TopbarComponent {
 
   toggleSidebar() {
     this.layoutService.toggleSidebar();
+  }
+
+  toggleMobileSidebar() {
+    this.layoutService.toggleMobileSidebar();
   }
 
   onLogout() {

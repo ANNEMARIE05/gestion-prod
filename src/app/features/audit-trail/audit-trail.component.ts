@@ -6,16 +6,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import {
   AuditTrailService,
   AuditEntry,
-  AuditModule,
 } from '../../services/audit-trail.service';
-
-const MODULE_LABEL: Record<AuditModule, string> = {
-  AUTH: 'Authentification',
-  PROFILE: 'Mon profil',
-  PRODUCTION: 'Production',
-  PLANIFICATION: 'Planification',
-  SETTINGS: 'Paramétrage',
-};
 
 @Component({
   selector: 'app-audit-trail',
@@ -27,7 +18,7 @@ const MODULE_LABEL: Record<AuditModule, string> = {
 export class AuditTrailComponent implements AfterViewInit {
   private auditService = inject(AuditTrailService);
 
-  displayedColumns: string[] = ['timestamp', 'userName', 'action', 'module', 'details', 'ipAddress'];
+  displayedColumns: string[] = ['timestamp', 'responsable', 'action', 'tableName', 'changes'];
   dataSource = new MatTableDataSource<AuditEntry>([]);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -40,10 +31,6 @@ export class AuditTrailComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
-  }
-
-  moduleLabel(m: AuditModule): string {
-    return MODULE_LABEL[m] ?? m;
   }
 
   getActionClass(action: string): string {

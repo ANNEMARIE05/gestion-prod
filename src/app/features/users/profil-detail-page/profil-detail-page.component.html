@@ -1,0 +1,102 @@
+<ng-container *ngIf="profile as p; else missingProfile">
+  <div class="atypical-form-shell">
+    <div class="atypical-form-header">
+      <div class="flex items-start gap-4 min-w-0 flex-1">
+        <button
+          mat-icon-button
+          type="button"
+          routerLink="/utilisateurs/profils"
+          class="!bg-white shadow-sm hover:shadow-md transition-shadow !rounded-md mt-1 flex-shrink-0"
+        >
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+
+        <div class="min-w-0">
+          <h1 class="atypical-form-title m-0">{{ p.label }}</h1>
+          <p class="atypical-form-subtitle m-0 mt-1">Profil d'autorisation</p>
+          <div class="atypical-section-band mt-3"></div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-2 justify-end">
+        @if (perm.canEdit()) {
+          <button
+            mat-stroked-button
+            type="button"
+            [routerLink]="['/utilisateurs/profils/edit', p.id]"
+            class="!rounded-md !border-gray-200"
+          >
+            <mat-icon class="mr-2">edit</mat-icon>
+            Modifier
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="atypical-form-card space-y-8">
+      <div class="atypical-section">
+        <h3 class="atypical-section-title">Informations générales</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="atypical-soft-block p-4">
+            <p class="text-xs text-gray-500 m-0">Code</p>
+            <p class="text-sm font-semibold text-gray-900 m-0 mt-1 font-mono">{{ displayCode() }}</p>
+          </div>
+
+          <div class="atypical-soft-block p-4">
+            <p class="text-xs text-gray-500 m-0">Libellé</p>
+            <p class="text-sm font-semibold text-gray-900 m-0 mt-1">{{ p.label }}</p>
+          </div>
+
+          <div class="atypical-soft-block p-4">
+            <p class="text-xs text-gray-500 m-0">Date de création</p>
+            <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+              {{ p.createdAt ? (p.createdAt | date: 'dd/MM/yyyy') : '—' }}
+            </p>
+          </div>
+
+          <div class="atypical-soft-block p-4">
+            <p class="text-xs text-gray-500 m-0">Menus habilités</p>
+            <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+              {{ p.visibleMenuIds.length }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="atypical-section">
+        <h3 class="atypical-section-title">Menus et actions</h3>
+
+        @if (menuEntries().length === 0) {
+          <p class="text-sm text-gray-500 m-0">Aucune habilitation configurée pour ce profil.</p>
+        } @else {
+          <div class="space-y-3">
+            @for (entry of menuEntries(); track entry.menuId) {
+              <div class="atypical-soft-block p-4">
+                <p class="text-sm font-semibold text-gray-900 m-0">{{ entry.menuLabel }}</p>
+                <p class="text-xs text-gray-500 m-0 mt-2">
+                  @if (entry.actions.length === 0) {
+                    Aucune action autorisée
+                  } @else {
+                    {{ entry.actions.join(', ') }}
+                  }
+                </p>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</ng-container>
+
+<ng-template #missingProfile>
+  <div class="atypical-form-shell">
+    <div class="atypical-form-card text-center py-14 space-y-4">
+      <p class="text-sm text-gray-500 m-0">Profil introuvable ou non disponible.</p>
+      <button mat-flat-button color="primary" routerLink="/utilisateurs/profils" type="button">
+        Retour aux profils
+      </button>
+    </div>
+  </div>
+</ng-template>

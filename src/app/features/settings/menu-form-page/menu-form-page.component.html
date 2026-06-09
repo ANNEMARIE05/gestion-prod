@@ -13,8 +13,7 @@
       <div>
         <h1 class="atypical-form-title">{{ pageTitle }}</h1>
         <p class="atypical-form-subtitle">
-          Libellé, icône, route Angular, menu parent éventuel et actions
-          disponibles sur ce menu.
+          Code, libellé, icône, lien, menu parent et actions associées.
         </p>
         <div class="atypical-section-band mt-3"></div>
       </div>
@@ -34,6 +33,21 @@
         <div class="atypical-input-grid">
           <mat-form-field appearance="fill" class="w-full ng-field-segmented">
             <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>tag</mat-icon>
+              <span>Code<span class="ng-field-segmented__req">*</span></span>
+            </div>
+            <input
+              matInput
+              [(ngModel)]="code"
+              name="mcode"
+              autocomplete="off"
+              placeholder="Ex. MEN-001"
+            />
+            <mat-hint>Généré automatiquement à la création, modifiable</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
               <mat-icon>label</mat-icon>
               <span>Libellé<span class="ng-field-segmented__req">*</span></span>
             </div>
@@ -49,15 +63,16 @@
           <mat-form-field appearance="fill" class="w-full ng-field-segmented">
             <div matPrefix class="ng-field-segmented__prefix">
               <mat-icon>{{ icon || "folder" }}</mat-icon>
-              <span>Icône Material</span>
+              <span>Icône<span class="ng-field-segmented__req">*</span></span>
             </div>
             <input
               matInput
               [(ngModel)]="icon"
               name="micon"
               autocomplete="off"
-              placeholder="Ex. dashboard"
+              placeholder="Ex. dashboard ou fas fa-home"
             />
+            <mat-hint>Icône Material ou classe Font Awesome</mat-hint>
           </mat-form-field>
         </div>
       </div>
@@ -72,7 +87,7 @@
           >
             <div matPrefix class="ng-field-segmented__prefix">
               <mat-icon>link</mat-icon>
-              <span>Route<span class="ng-field-segmented__req">*</span></span>
+              <span>Lien (route)</span>
             </div>
             <input
               matInput
@@ -83,121 +98,141 @@
             />
           </mat-form-field>
 
-          @if (!isCreate && parentReadOnlyLabel) {
-            <div
-              class="atypical-soft-block flex-1 w-full flex gap-3 items-start"
-            >
-              <mat-icon class="text-slate-500 shrink-0 mt-0.5"
-                >account_tree</mat-icon
-              >
-              <div>
-                <p
-                  class="text-xs font-semibold text-slate-500 uppercase tracking-wide m-0 mb-1"
-                >
-                  Menu parent
-                </p>
-                <p class="text-sm text-slate-800 m-0">
-                  <span class="font-semibold">{{ parentReadOnlyLabel }}</span>
-                  <span class="text-slate-500">
-                    — élément sous un sous-menu ; la hiérarchie se gère depuis
-                    la liste.</span
-                  >
-                </p>
-              </div>
+          <mat-form-field
+            appearance="fill"
+            class="flex-1 w-full ng-field-segmented"
+          >
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>account_tree</mat-icon>
+              <span>Menu parent</span>
             </div>
-          } @else {
-            <mat-form-field
-              appearance="fill"
-              class="flex-1 w-full ng-field-segmented"
+            <mat-select
+              [(ngModel)]="parentId"
+              name="mparent"
+              aria-label="Menu parent"
             >
-              <div matPrefix class="ng-field-segmented__prefix">
-                <mat-icon>account_tree</mat-icon>
-                <span>Menu parent</span>
-              </div>
-              <mat-select
-                [(ngModel)]="parentId"
-                name="mparent"
-                [disabled]="!isCreate"
-                aria-label="Menu parent (racine uniquement)"
-              >
-                <mat-option [value]="null">— Aucun (racine)</mat-option>
-                @for (opt of parentOptions(); track opt.id) {
-                  <mat-option [value]="opt.id">{{ opt.label }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
-          }
+              <mat-option [value]="null">Aucun (menu principal)</mat-option>
+              @for (opt of parentOptions(); track opt.id) {
+                <mat-option [value]="opt.id">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+            <mat-hint>
+              @if (isCreate) {
+                Seuls les menus principaux actifs peuvent être parents à la création.
+              } @else {
+                Choisissez le menu parent ou laissez vide pour une entrée racine.
+              }
+            </mat-hint>
+          </mat-form-field>
         </div>
       </div>
 
       <div class="atypical-section">
-        <h3 class="atypical-section-title">Actions disponibles sur ce menu</h3>
-        <p class="text-sm text-gray-500 m-0">
-          Cochez les actions du catalogue qui pourront être réalisées sur la
-          page de ce menu (Créer, Modifier, Exporter, etc.). Elles seront
-          ensuite attribuables aux profils.
-        </p>
+        <h3 class="atypical-section-title">Actions associées</h3>
 
-        @if (settings.allActions().length === 0) {
+        @if (!isCreate && loadingAssignedActions()) {
+          <p class="text-sm text-slate-500 m-0 mb-3">Chargement des actions associées…</p>
+        }
+
+        @if (availableActions().length === 0) {
           <div class="atypical-soft-block flex gap-3 items-start">
             <mat-icon class="text-slate-500 shrink-0 mt-0.5">info</mat-icon>
             <p class="text-sm text-slate-600 m-0">
-              Aucune action n’a encore été définie dans le catalogue. Créez
-              d’abord vos actions depuis la page « Actions ».
+              Aucune action active dans le catalogue. Créez d’abord vos actions
+              depuis la page « Actions ».
             </p>
           </div>
         } @else {
-          <div class="atypical-soft-block">
-            <div
-              class="flex items-center justify-between mb-3 pb-3 border-b border-slate-200/80"
-            >
-              <div
-                class="flex items-center gap-2 text-sm font-semibold text-slate-700"
+          <div class="atypical-soft-block space-y-3">
+            <div class="relative actions-dropdown-container">
+              <button
+                type="button"
+                (click)="toggleActionsDropdown()"
+                [disabled]="loadingAssignedActions()"
+                class="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[42px] flex items-center justify-between text-left disabled:opacity-60 disabled:cursor-not-allowed"
+                [class.ring-2]="actionsDropdownOpen"
+                [class.ring-primary-500]="actionsDropdownOpen"
               >
-                <mat-icon class="!text-lg text-slate-500">bolt</mat-icon>
-                <span
-                  >{{ settings.allActions().length }} action(s) au
-                  catalogue</span
-                >
-              </div>
-              <mat-checkbox
-                [checked]="allActionsChecked"
-                (change)="toggleAllActions($event.checked)"
-                class="!text-sm font-semibold"
-              >
-                Tout cocher
-              </mat-checkbox>
-            </div>
-
-            <div
-              class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2"
-            >
-              @for (a of settings.allActions(); track a.id) {
-                <mat-checkbox
-                  [checked]="isActionOn(a.id)"
-                  (change)="toggleAction(a.id, $event.checked)"
-                  class="font-medium"
-                >
-                  <span class="inline-flex items-center gap-1.5">
-                    <mat-icon
-                      class="!text-base !w-4 !h-4 text-amber-600 shrink-0"
-                      >{{ a.icon || "bolt" }}</mat-icon
+                <div class="flex flex-wrap gap-1 flex-1 pr-2">
+                  @if (actionIds().length === 0) {
+                    <span class="text-slate-400 text-sm">Sélectionner des actions…</span>
+                  }
+                  @for (action of selectedActions(); track action.actionId) {
+                    <span
+                      class="inline-flex items-center px-2 py-1 bg-primary-100 text-primary-800 text-sm rounded-md"
                     >
-                    <span>
-                      {{ a.label }}
-                      <span class="text-slate-400 font-normal text-xs ml-1"
-                        >({{ a.code }})</span
+                      <mat-icon class="!text-sm !w-4 !h-4 mr-1 text-primary-600">{{
+                        action.icon || "bolt"
+                      }}</mat-icon>
+                      {{ action.label }}
+                      <button
+                        type="button"
+                        (click)="removeAction(action.actionId, $event)"
+                        class="ml-1 text-primary-600 hover:text-primary-900 focus:outline-none"
+                        [attr.aria-label]="'Retirer ' + action.label"
                       >
-                      @if (!a.active) {
-                        <span class="text-slate-400 font-normal text-xs ml-1"
-                          >— inactive</span
-                        >
-                      }
+                        <mat-icon class="!text-xs !w-3 !h-3">close</mat-icon>
+                      </button>
                     </span>
-                  </span>
-                </mat-checkbox>
+                  }
+                </div>
+                <mat-icon
+                  class="text-slate-400 shrink-0 transition-transform"
+                  [class.rotate-180]="actionsDropdownOpen"
+                >
+                  expand_more
+                </mat-icon>
+              </button>
+
+              @if (actionsDropdownOpen) {
+                <div
+                  class="absolute z-50 w-full mt-1 bg-white border border-slate-300 rounded-lg shadow-lg max-h-60 overflow-auto"
+                >
+                  <div class="p-2">
+                    @for (action of availableActions(); track action.actionId) {
+                      <label
+                        class="flex items-center px-3 py-2 hover:bg-slate-50 rounded cursor-pointer"
+                        [attr.for]="'menu-action-' + action.actionId"
+                      >
+                        <input
+                          type="checkbox"
+                          class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 rounded cursor-pointer"
+                          [id]="'menu-action-' + action.actionId"
+                          [checked]="isActionSelected(action.actionId)"
+                          (change)="toggleAction(action.actionId)"
+                        />
+                        <span class="ml-3 text-sm text-slate-700 flex-1 flex items-center">
+                          <mat-icon class="!text-base !w-4 !h-4 mr-2 text-amber-600">{{
+                            action.icon || "bolt"
+                          }}</mat-icon>
+                          {{ action.label }}
+                        </span>
+                      </label>
+                    }
+                  </div>
+                </div>
               }
             </div>
+
+            @if (actionIds().length > 0) {
+              <p class="text-xs text-slate-500 m-0">
+                {{ actionIds().length }} action(s) sélectionnée(s)
+              </p>
+            }
+
+            @if (!isCreate && hasPendingActionChanges()) {
+              <div
+                class="rounded-lg border border-amber-200 bg-amber-50/80 px-3 py-2 text-sm text-amber-900"
+              >
+                <span class="font-semibold">Modifications en attente :</span>
+                @if (pendingAdds().length > 0) {
+                  <span class="ml-2">+ {{ pendingAddsLabel() }}</span>
+                }
+                @if (pendingRemoves().length > 0) {
+                  <span class="ml-2">− {{ pendingRemovesLabel() }}</span>
+                }
+              </div>
+            }
           </div>
         }
       </div>
@@ -211,9 +246,7 @@
             <div
               class="flex items-center gap-2 text-sm font-semibold text-slate-700"
             >
-              <mat-icon class="!text-xl text-slate-500"
-                >power_settings_new</mat-icon
-              >
+              <mat-icon class="!text-xl text-slate-500">power_settings_new</mat-icon>
               <span>Menu actif</span>
             </div>
             <mat-slide-toggle
@@ -238,7 +271,7 @@
           type="button"
           mat-flat-button
           color="primary"
-          [disabled]="!canSave"
+          [disabled]="!canSave || loadingAssignedActions()"
           [appBtnLoading]="loading()"
           (click)="save()"
           class="!px-12 !py-6 shadow-lg shadow-primary/20"

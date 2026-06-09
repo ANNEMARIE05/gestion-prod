@@ -13,6 +13,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { PlanificationService } from '../../../services/planification.service';
+import { PlanificationProjetService } from '../../../services/planificationProjet.service';
+import { ErrorHandlerService } from '../../../services/error-handler.service';
+import { PermissionService } from '../../../services/permission.service';
 import { ProductionService } from '../../../services/production.service';
 import { PlanTask, PlanTaskStatus } from '../../../models/plan-task';
 import { ProductionType } from '../../../models/production';
@@ -20,6 +23,7 @@ import { SettingsService } from '../../../services/settings.service';
 import { LoadingSkeletonTableComponent } from '../../../shared/components/loading-skeleton-table/loading-skeleton-table.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { encodeTableFilter, decodeTableFilter } from '../../../utils/table-filter';
+import { planificationDetailRoute, planificationEditRoute } from '../../../utils/app-routes';
 
 function equipmentTypeShort(t: PlanTask['equipmentType']): string | undefined {
   if (!t) return undefined;
@@ -65,11 +69,15 @@ const STATUS_LABEL: Record<PlanTaskStatus, string> = {
   styleUrl: './planification-list.component.scss'
 })
 export class PlanificationListComponent implements OnInit, AfterViewInit {
+  readonly perm = inject(PermissionService);
+
   /** Filtre liste / stats selon l’onglet planification (projets, audits, veille). */
   type = input<ProductionType>('PROJECT');
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   private readonly planService = inject(PlanificationService);
+  private readonly planificationProjetService = inject(PlanificationProjetService);
+  private readonly errorHandler = inject(ErrorHandlerService);
   private readonly productionService = inject(ProductionService);
   private readonly router = inject(Router);
   private readonly settingsService = inject(SettingsService);
@@ -262,8 +270,8 @@ export class PlanificationListComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-    this.planService.refreshTasks();
-    this.productionService.refreshItems();
+    this.planService.refreshTasks().subscribe();
+    this.productionService.refreshItems().subscribe();
   }
 
   constructor() {
@@ -441,19 +449,11 @@ export class PlanificationListComponent implements OnInit, AfterViewInit {
   }
 
   editTask(task: PlanTask): void {
-    void this.router.navigate(['/planification/edit', task.id]);
+    void this.router.navigate([planificationEditRoute(task.type, task.id)]);
   }
 
   viewDetails(task: PlanTask): void {
-    if (task.type === 'AUDIT') {
-      void this.router.navigate(['/planification/audits/detail', task.id]);
-      return;
-    }
-    if (task.type === 'ENGINEERING') {
-      void this.router.navigate(['/planification/veille/detail', task.id]);
-      return;
-    }
-    void this.router.navigate(['/planification/detail', task.id]);
+    void this.router.navigate([planificationDetailRoute(task.type, task.id)]);
   }
 
   deleteTask(task: PlanTask): void {
@@ -521,5 +521,26 @@ export class PlanificationListComponent implements OnInit, AfterViewInit {
 
   equipmentTypeCell(task: PlanTask): string {
     return equipmentTypeShort(task.equipmentType) ?? '-';
+  }
+
+  downloadTemplateCsv(): void {
+    this.planificationProjetService.downloadTemplate().subscribe({
+      next: (response) => {
+        if (!response.body) {
+          return;
+        }
+        this.downloadBlob(response.body, 'modele_planifications-projets.csv');
+      },
+      error: (err: unknown) => this.errorHandler.showError(err),
+    });
+  }
+
+  private downloadBlob(blob: Blob, filename: string): void {
+    const url = URL.createObjectURL(new Blob([blob], { type: 'text/csv;charset=utf-8;' }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    anchor.click();
+    URL.revokeObjectURL(url);
   }
 }

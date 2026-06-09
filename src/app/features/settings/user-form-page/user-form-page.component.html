@@ -34,6 +34,20 @@
         <div class="atypical-input-grid">
           <mat-form-field appearance="fill" class="w-full ng-field-segmented">
             <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>tag</mat-icon>
+              <span>Code</span>
+            </div>
+            <input
+              matInput
+              [(ngModel)]="code"
+              name="ucode"
+              readonly
+              placeholder="Généré automatiquement"
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
               <mat-icon>badge</mat-icon>
               <span>Nom<span class="ng-field-segmented__req">*</span></span>
             </div>

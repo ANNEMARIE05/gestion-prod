@@ -4,6 +4,7 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Entity, SettingsService } from '../../../services/settings.service';
+import { PermissionService } from '../../../services/permission.service';
 
 @Component({
   selector: 'app-entite-detail-page',
@@ -12,17 +13,37 @@ import { Entity, SettingsService } from '../../../services/settings.service';
   templateUrl: './entite-detail-page.component.html',
 })
 export class EntiteDetailPageComponent implements OnInit {
+  readonly perm = inject(PermissionService);
+
   private readonly route = inject(ActivatedRoute);
   private readonly settings = inject(SettingsService);
 
   entity: Entity | null = null;
+  loading = true;
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
+      this.loading = false;
       return;
     }
-    this.entity = this.settings.getEntityById(id) ?? null;
+    const cached = this.settings.getEntityById(id);
+    if (cached) {
+      this.entity = cached;
+      this.loading = false;
+      return;
+    }
+    this.settings.loadEntityById(id).subscribe((e) => {
+      this.entity = e;
+      this.loading = false;
+    });
+  }
+
+  displayCode(): string {
+    if (!this.entity) {
+      return '';
+    }
+    return this.entity.code || `ENT-${this.entity.id}`;
   }
 
   getParentLabel(): string {

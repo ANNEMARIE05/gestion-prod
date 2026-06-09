@@ -1,4 +1,5 @@
-import { Component, ViewChild, AfterViewInit, computed, effect, signal } from '@angular/core';
+import { Component, ViewChild, AfterViewInit, computed, effect, inject, signal } from '@angular/core';
+import { PermissionService } from '../../../services/permission.service';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -11,6 +12,9 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { ErrorHandlerService } from '../../../services/error-handler.service';
+import { DEMO_PROFILE_ID } from '../../../data/local-app-defaults';
 import { Profile, SettingsService } from '../../../services/settings.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { LoadingSkeletonTableComponent } from '../../../shared/components/loading-skeleton-table/loading-skeleton-table.component';
@@ -37,11 +41,16 @@ import { encodeTableFilter, decodeTableFilter } from '../../../utils/table-filte
   styleUrl: './profils-list.component.scss',
 })
 export class ProfilsListComponent implements AfterViewInit {
+  readonly perm = inject(PermissionService);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly errorHandler = inject(ErrorHandlerService);
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   dataSource = new MatTableDataSource<Profile>([]);
 
-  displayedColumns: string[] = ['numero', 'label', 'scope', 'actions'];
+  displayedColumns: string[] = ['numero', 'code', 'label', 'scope', 'createdAt', 'actions'];
+  readonly protectedProfileId = DEMO_PROFILE_ID;
   isLoading = true;
 
   readonly filterSearch = signal('');
@@ -66,7 +75,8 @@ export class ProfilsListComponent implements AfterViewInit {
         return true;
       }
       const scopeText = data.visibleMenuIds.join(' ');
-      const haystack = [data.label, scopeText].join(' ').toLowerCase();
+      const code = data.code || `PROF-${data.id}`;
+      const haystack = [code, data.label, scopeText].join(' ').toLowerCase();
       return haystack.includes(q);
     };
 
@@ -87,12 +97,20 @@ export class ProfilsListComponent implements AfterViewInit {
     this.dataSource.paginator = this.paginator;
   }
 
+  displayCode(row: Profile): string {
+    return row.code || `PROF-${row.id}`;
+  }
+
+  goToDetail(row: Profile): void {
+    void this.router.navigate(['/utilisateurs/profils', row.id]);
+  }
+
   goToEdit(row: Profile): void {
     void this.router.navigate(['/utilisateurs/profils/edit', row.id]);
   }
 
   deleteProfile(row: Profile): void {
-    if (row.id === '1') {
+    if (row.id === this.protectedProfileId) {
       return;
     }
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
@@ -105,9 +123,12 @@ export class ProfilsListComponent implements AfterViewInit {
       },
     });
     dialogRef.afterClosed().subscribe((ok: boolean) => {
-      if (ok) {
-        this.settingsService.deleteProfile(row.id);
-      }
+      if (!ok) return;
+      this.settingsService.deleteProfile(row.id).subscribe({
+        next: () => this.snackBar.open('Profil supprimé avec succès', 'Fermer', { duration: 3000 }),
+        error: (err: unknown) =>
+          this.snackBar.open(this.errorHandler.getErrorMessage(err), 'Fermer', { duration: 5000 }),
+      });
     });
   }
 

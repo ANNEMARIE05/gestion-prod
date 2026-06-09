@@ -33,6 +33,20 @@
         <div class="atypical-input-grid">
           <mat-form-field appearance="fill" class="w-full ng-field-segmented">
             <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>tag</mat-icon>
+              <span>Code<span class="ng-field-segmented__req">*</span></span>
+            </div>
+            <input
+              matInput
+              [(ngModel)]="code"
+              name="appcode"
+              autocomplete="off"
+              placeholder="APP-001"
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
               <mat-icon>apps</mat-icon>
               <span>Libellé<span class="ng-field-segmented__req">*</span></span>
             </div>

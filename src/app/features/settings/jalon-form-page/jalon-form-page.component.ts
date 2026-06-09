@@ -7,7 +7,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Jalon, SettingsService } from '../../../services/settings.service';
+import { ErrorHandlerService } from '../../../services/error-handler.service';
 import { ButtonLoadingDirective } from '../../../shared/directives/button-loading.directive';
 
 @Component({
@@ -22,6 +24,7 @@ import { ButtonLoadingDirective } from '../../../shared/directives/button-loadin
     MatInputModule,
     MatIconModule,
     MatSelectModule,
+    MatSnackBarModule,
     ButtonLoadingDirective,
   ],
   templateUrl: './jalon-form-page.component.html',
@@ -29,6 +32,8 @@ import { ButtonLoadingDirective } from '../../../shared/directives/button-loadin
 export class JalonFormPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly errorHandler = inject(ErrorHandlerService);
   readonly settings = inject(SettingsService);
 
   isCreate = true;
@@ -36,17 +41,19 @@ export class JalonFormPageComponent implements OnInit {
   readonly loading = signal(false);
 
   label = '';
+  code = '';
   parentId: string | null = null;
-  selectedApplicationId: string | null = null;
+  selectedApplicationIds: string[] = [];
 
-  readonly backRoute = '/settings/jalons';
+  readonly backRoute = '/parametrages/jalons';
   readonly parentOptions = computed(() =>
-    this.settings.jalonSelectOptions().filter((opt) => opt.id !== this.existingId),
+    this.settings
+      .jalonSelectOptions()
+      .filter((opt) => opt.id !== this.existingId)
+      .filter((opt) => (this.isCreate ? this.isRootJalon(opt.id) : true)),
   );
   readonly applicationOptions = computed(() =>
-    this.settings
-      .allApplications()
-      .sort((a, b) => a.label.localeCompare(b.label)),
+    this.settings.allApplications().sort((a, b) => a.label.localeCompare(b.label)),
   );
 
   get pageTitle(): string {
@@ -54,62 +61,65 @@ export class JalonFormPageComponent implements OnInit {
   }
 
   get canSave(): boolean {
-    return !!this.label.trim();
-  }
-
-  get canSelectApplications(): boolean {
-    return !!this.parentId;
+    return !!this.label.trim() && !!this.code.trim();
   }
 
   ngOnInit(): void {
     const url = this.router.url;
-    if (url.includes('/nouveau')) {
+    if (url.includes('/create') || url.includes('/nouveau')) {
       this.isCreate = true;
       this.existingId = null;
+      this.code = this.settings.generatePrefixedCode('JAL', this.settings.allJalons());
       return;
     }
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      const j = this.settings.getJalonById(id);
-      if (!j) {
-        void this.router.navigate([this.backRoute]);
-        return;
-      }
       this.isCreate = false;
       this.existingId = id;
-      this.label = j.label;
-      this.parentId = j.parentId ?? null;
-      this.selectedApplicationId = j.applicationIds?.[0] ?? null;
+      this.settings.loadJalonById(id).subscribe((j) => {
+        if (!j) {
+          void this.router.navigate([this.backRoute]);
+          return;
+        }
+        this.label = j.label;
+        this.code = j.code || `JAL-${j.id}`;
+        this.parentId = j.parentId ?? null;
+        this.selectedApplicationIds = j.applicationIds ?? [];
+      });
     }
   }
 
-  onParentChange(parentId: string | null): void {
-    if (!parentId) {
-      this.selectedApplicationId = null;
-    }
+  private isRootJalon(jalonId: string): boolean {
+    return !this.settings.getJalonById(jalonId)?.parentId;
   }
 
   save(): void {
     if (!this.canSave || this.loading()) return;
     this.loading.set(true);
-    setTimeout(() => {
-      const existing = this.existingId ? this.settings.getJalonById(this.existingId) : undefined;
-      const item: Jalon = {
-        id: this.isCreate ? this.settings.generateId() : this.existingId!,
-        code: existing?.code ?? this.label.trim().toUpperCase().replace(/\s+/g, '_'),
-        label: this.label.trim(),
-        parentId: this.parentId ?? undefined,
-        applicationIds: this.parentId && this.selectedApplicationId ? [this.selectedApplicationId] : [],
-        createdAt: existing?.createdAt ?? new Date(),
-        createdBy: existing?.createdBy ?? 'Utilisateur courant',
-      };
-      if (this.isCreate) {
-        this.settings.addJalon(item);
-      } else {
-        this.settings.updateJalon(item);
-      }
-      this.loading.set(false);
-      void this.router.navigate([this.backRoute]);
-    }, 600);
+    const existing = this.existingId ? this.settings.getJalonById(this.existingId) : undefined;
+    const item: Jalon = {
+      id: this.isCreate ? '' : this.existingId!,
+      code: this.code.trim() || existing?.code || this.label.trim().toUpperCase().replace(/\s+/g, '_'),
+      label: this.label.trim(),
+      parentId: this.parentId ?? undefined,
+      applicationIds: this.selectedApplicationIds ?? [],
+      createdAt: existing?.createdAt,
+      createdBy: existing?.createdBy,
+    };
+    this.settings.persistJalon(item, this.isCreate).subscribe({
+      next: () => {
+        this.loading.set(false);
+        this.snackBar.open(
+          this.isCreate ? 'Jalon créé avec succès' : 'Jalon modifié avec succès',
+          'Fermer',
+          { duration: 3000 },
+        );
+        void this.router.navigate([this.backRoute]);
+      },
+      error: (err: unknown) => {
+        this.loading.set(false);
+        this.snackBar.open(this.errorHandler.getErrorMessage(err), 'Fermer', { duration: 5000 });
+      },
+    });
   }
 }

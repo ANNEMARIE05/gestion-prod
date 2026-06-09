@@ -7,8 +7,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { AppAction } from '../../../models/authorization';
+import { ErrorHandlerService } from '../../../services/error-handler.service';
 import { SettingsService } from '../../../services/settings.service';
+import { PermissionService } from '../../../services/permission.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
@@ -27,13 +30,17 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
   templateUrl: './actions-page.component.html',
 })
 export class ActionsPageComponent implements AfterViewInit {
+  readonly perm = inject(PermissionService);
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   readonly settings = inject(SettingsService);
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly errorHandler = inject(ErrorHandlerService);
 
-  readonly displayedColumns: string[] = ['numero', 'icon', 'code', 'label', 'active', 'actions'];
+  readonly displayedColumns: string[] = ['numero', 'icon', 'code', 'label', 'active', 'createdAt', 'actions'];
   readonly dataSource = new MatTableDataSource<AppAction>([]);
 
   constructor() {
@@ -69,7 +76,7 @@ export class ActionsPageComponent implements AfterViewInit {
   }
 
   goToEdit(row: AppAction): void {
-    void this.router.navigate(['/settings/actions/edit', row.id]);
+    void this.router.navigate(['/parametrages/actions/edit', row.id]);
   }
 
   remove(row: AppAction): void {
@@ -83,9 +90,12 @@ export class ActionsPageComponent implements AfterViewInit {
       },
     });
     dialogRef.afterClosed().subscribe((ok: boolean) => {
-      if (ok) {
-        this.settings.deleteAction(row.id);
-      }
+      if (!ok) return;
+      this.settings.deleteAction(row.id).subscribe({
+        next: () => this.snackBar.open('Action supprimée avec succès', 'Fermer', { duration: 3000 }),
+        error: (err: unknown) =>
+          this.snackBar.open(this.errorHandler.getErrorMessage(err), 'Fermer', { duration: 5000 }),
+      });
     });
   }
 }

@@ -15,6 +15,7 @@
     </div>
 
     <div class="premium-card overflow-hidden">
+      <div class="app-table-scroll">
       <table mat-table [dataSource]="dataSource" class="w-full">
         <ng-container matColumnDef="numero">
           <th
@@ -47,9 +48,11 @@
                 element.libelle
               }}</span>
               @if (element.description) {
-                <span class="text-xs text-gray-500 line-clamp-2">{{
-                  element.description
-                }}</span>
+                <span
+                  class="text-xs text-gray-500 truncate block max-w-xs"
+                  [matTooltip]="element.description"
+                  >{{ element.description }}</span
+                >
               }
             </div>
           </td>
@@ -122,30 +125,36 @@
             Actions
           </th>
           <td mat-cell *matCellDef="let element" class="text-right px-4">
-            <button
-              mat-icon-button
-              (click)="openDetail(element)"
-              class="text-gray-400 hover:text-primary transition-colors"
-              matTooltip="Voir détails"
-            >
-              <mat-icon class="!text-lg">visibility</mat-icon>
-            </button>
-            <button
-              mat-icon-button
-              (click)="openEdit(element)"
-              class="text-gray-400 hover:text-blue-600 transition-colors"
-              matTooltip="Modifier"
-            >
-              <mat-icon class="!text-lg">edit</mat-icon>
-            </button>
-            <button
-              mat-icon-button
-              (click)="confirmDelete(element)"
-              class="text-gray-400 hover:text-red-500 transition-colors"
-              matTooltip="Supprimer"
-            >
-              <mat-icon class="!text-lg">delete_outline</mat-icon>
-            </button>
+            @if (perm.canView()) {
+              <button
+                mat-icon-button
+                (click)="openDetail(element)"
+                class="text-gray-400 hover:text-primary transition-colors"
+                matTooltip="Voir détails"
+              >
+                <mat-icon class="!text-lg">visibility</mat-icon>
+              </button>
+            }
+            @if (perm.canEdit()) {
+              <button
+                mat-icon-button
+                (click)="openEdit(element)"
+                class="text-gray-400 hover:text-blue-600 transition-colors"
+                matTooltip="Modifier"
+              >
+                <mat-icon class="!text-lg">edit</mat-icon>
+              </button>
+            }
+            @if (perm.canDelete()) {
+              <button
+                mat-icon-button
+                (click)="confirmDelete(element)"
+                class="text-gray-400 hover:text-red-500 transition-colors"
+                matTooltip="Supprimer"
+              >
+                <mat-icon class="!text-lg">delete_outline</mat-icon>
+              </button>
+            }
           </td>
         </ng-container>
 
@@ -165,6 +174,7 @@
           </td>
         </tr>
       </table>
+      </div>
 
       <mat-paginator
         [pageSizeOptions]="[5, 10, 25]"

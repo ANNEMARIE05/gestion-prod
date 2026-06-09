@@ -5,7 +5,7 @@
         <button
           mat-icon-button
           type="button"
-          routerLink="/settings/entites"
+          routerLink="/parametrages/entites"
           class="!bg-white shadow-sm hover:shadow-md transition-shadow !rounded-md mt-1 flex-shrink-0"
         >
           <mat-icon>arrow_back</mat-icon>
@@ -21,16 +21,18 @@
       </div>
 
       <div class="flex flex-wrap gap-2 justify-end">
-        <button
-          mat-stroked-button
-          type="button"
-          [routerLink]="['/settings/entites/edit', e.id]"
-          class="!rounded-md !border-gray-200"
-        >
-          <mat-icon class="mr-2">edit</mat-icon>
+        @if (perm.canEdit()) {
+          <button
+            mat-stroked-button
+            type="button"
+            [routerLink]="['/parametrages/entites/edit', e.id]"
+            class="!rounded-md !border-gray-200"
+          >
+            <mat-icon class="mr-2">edit</mat-icon>
 
-          Modifier
-        </button>
+            Modifier
+          </button>
+        }
       </div>
     </div>
 
@@ -40,13 +42,19 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="atypical-soft-block p-4">
-            <p class="text-xs text-gray-500 m-0">Nom</p>
+            <p class="text-xs text-gray-500 m-0">Code</p>
+
+            <p class="text-sm font-semibold text-gray-900 m-0 mt-1 font-mono">{{ displayCode() }}</p>
+          </div>
+
+          <div class="atypical-soft-block p-4">
+            <p class="text-xs text-gray-500 m-0">Libellé</p>
 
             <p class="text-sm font-semibold text-gray-900 m-0 mt-1">{{ e.name }}</p>
           </div>
 
           <div class="atypical-soft-block p-4">
-            <p class="text-xs text-gray-500 m-0">Rattachée à</p>
+            <p class="text-xs text-gray-500 m-0">Entité parente</p>
 
             <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
               @if (getParentLabel()) {
@@ -102,7 +110,7 @@
     <div class="atypical-form-card text-center py-14 space-y-4">
       <p class="text-sm text-gray-500 m-0">Entité introuvable ou non disponible.</p>
 
-      <button mat-flat-button color="primary" routerLink="/settings/entites" type="button">
+      <button mat-flat-button color="primary" routerLink="/parametrages/entites" type="button">
         Retour aux entités
       </button>
     </div>

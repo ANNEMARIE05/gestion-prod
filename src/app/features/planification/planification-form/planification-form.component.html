@@ -274,7 +274,12 @@
         >
           <div matPrefix class="ng-field-segmented__prefix">
             <mat-icon>subdirectory_arrow_right</mat-icon>
-            <span>Sous-jalon</span>
+            <span
+              >Sous-jalon@if (isSubJalonRequired()) {<span
+                  class="ng-field-segmented__req"
+                  >*</span
+                >}</span
+            >
           </div>
           <mat-select formControlName="subJalonId">
             <mat-option value="">Aucun</mat-option>
@@ -284,6 +289,9 @@
               }}</mat-option>
             }
           </mat-select>
+          @if (form.controls.subJalonId.hasError('required')) {
+            <mat-error>Veuillez sélectionner un sous-jalon.</mat-error>
+          }
         </mat-form-field>
       }
 

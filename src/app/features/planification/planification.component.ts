@@ -1,10 +1,16 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { PermissionService } from '../../services/permission.service';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { PlanificationListComponent } from './planification-list/planification-list.component';
 import { ProductionType } from '../../models/production';
+import { planificationCreateRoute } from '../../utils/app-routes';
+import { PlanificationProjetService } from '../../services/planificationProjet.service';
+import { PlanificationService } from '../../services/planification.service';
+import { ErrorHandlerService } from '../../services/error-handler.service';
 
 interface PlanPageMeta {
   title: string;
@@ -53,24 +59,68 @@ const PAGE_META: Record<ProductionType, PlanPageMeta> = {
   styleUrl: './planification.component.scss'
 })
 export class PlanificationComponent {
+  readonly perm = inject(PermissionService);
+  private readonly planificationProjetService = inject(PlanificationProjetService);
+  private readonly planService = inject(PlanificationService);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly errorHandler = inject(ErrorHandlerService);
+
   type = signal<ProductionType>('PROJECT');
   meta = signal<PlanPageMeta>(PAGE_META['PROJECT']);
-  createRoute = signal('/planification/projets/new');
+  createRoute = signal(planificationCreateRoute('PROJECT'));
 
   constructor(private route: ActivatedRoute) {
     this.route.data.subscribe(data => {
       const t = (data['type'] as ProductionType) ?? 'PROJECT';
       this.type.set(t);
       this.meta.set(PAGE_META[t]);
-      if (t === 'AUDIT') {
-        this.createRoute.set('/planification/audits/new');
-      } else if (t === 'ENGINEERING') {
-        this.createRoute.set('/planification/veille/new');
-      } else if (t === 'MONITORING') {
-        this.createRoute.set('/planification/monitoring/new');
-      } else {
-        this.createRoute.set('/planification/projets/new');
-      }
+      this.createRoute.set(planificationCreateRoute(t));
     });
+  }
+
+  exportCsv(): void {
+    this.planificationProjetService.exportCsv().subscribe({
+      next: (response) => {
+        if (!response.body) {
+          return;
+        }
+        const date = new Date().toISOString().split('T')[0];
+        this.downloadBlob(response.body, `planifications-projets_${date}.csv`);
+      },
+      error: (err: unknown) =>
+        this.snackBar.open(this.errorHandler.getErrorMessage(err), 'Fermer', { duration: 5000 }),
+    });
+  }
+
+  importCsv(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) {
+      return;
+    }
+    this.planificationProjetService.importCsv(file).subscribe({
+      next: (response) => {
+        input.value = '';
+        if (response.status >= 200 && response.status < 300) {
+          this.planService.refreshTasks().subscribe();
+          this.snackBar.open('Import réussi', 'Fermer', { duration: 3000 });
+        } else {
+          this.snackBar.open("Erreur lors de l'import", 'Fermer', { duration: 5000 });
+        }
+      },
+      error: (err: unknown) => {
+        input.value = '';
+        this.snackBar.open(this.errorHandler.getErrorMessage(err), 'Fermer', { duration: 5000 });
+      },
+    });
+  }
+
+  private downloadBlob(blob: Blob, filename: string): void {
+    const url = URL.createObjectURL(new Blob([blob], { type: 'text/csv;charset=utf-8;' }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    anchor.click();
+    URL.revokeObjectURL(url);
   }
 }

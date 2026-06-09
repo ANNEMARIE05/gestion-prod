@@ -1,13 +1,14 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { ProductionService } from '../../services/production.service';
 import { PlanificationService } from '../../services/planification.service';
+import { StatistiquesService, StatistiquesResponse } from '../../services/statistiques.service';
 import { ProductionItem, ProductionType } from '../../models/production';
 
 function countByType(items: ProductionItem[], type: ProductionType): number {
-  return items.filter(i => i.type === type).length;
+  return items.filter((i) => i.type === type).length;
 }
 
 function collectUniqueResourceIds(items: ProductionItem[]): number {
@@ -26,24 +27,40 @@ function collectUniqueResourceIds(items: ProductionItem[]): number {
   standalone: true,
   imports: [CommonModule, RouterLink, MatIconModule],
   templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.scss'
+  styleUrl: './dashboard.component.scss',
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
   private production = inject(ProductionService);
   private planification = inject(PlanificationService);
+  private statistiquesApi = inject(StatistiquesService);
+
+  private apiStats = signal<StatistiquesResponse | null>(null);
 
   stats = computed(() => {
+    const api = this.apiStats();
+    if (api) {
+      return {
+        total:
+          (api.total_projets ?? 0) +
+          (api.total_audits_informatiques ?? 0) +
+          (api.total_veille_ingenierie ?? 0),
+        projects: api.total_projets ?? 0,
+        audits: api.total_audits_informatiques ?? 0,
+        engineering: api.total_veille_ingenierie ?? 0,
+        uniqueResources: api.total_ressources ?? 0,
+      };
+    }
+
     const items = this.production.allProductionItems();
     return {
       total: items.length,
       projects: countByType(items, 'PROJECT'),
       audits: countByType(items, 'AUDIT'),
       engineering: countByType(items, 'ENGINEERING'),
-      uniqueResources: collectUniqueResourceIds(items)
+      uniqueResources: collectUniqueResourceIds(items),
     };
   });
 
-  /** NOK (à faire + annulées), En cours, Terminés — uniquement planification « projet » (pas audit / veille). */
   planBuckets = computed(() => {
     const tasks = this.planification.allTasks().filter((t) => t.type === 'PROJECT');
     let todo = 0,
@@ -69,7 +86,20 @@ export class DashboardComponent {
     return {
       nok: todo + cancelled,
       enCours: inProgress,
-      termines: done
+      termines: done,
     };
   });
+
+  ngOnInit(): void {
+    this.statistiquesApi.getStatistiques().subscribe({
+      next: (resp) => {
+        if (resp.body) {
+          this.apiStats.set(resp.body);
+        }
+      },
+      error: () => {
+        this.apiStats.set(null);
+      },
+    });
+  }
 }

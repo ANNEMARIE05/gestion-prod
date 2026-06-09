@@ -1,4 +1,5 @@
-import { Component, ViewChild, AfterViewInit, computed, effect, signal } from '@angular/core';
+import { Component, ViewChild, AfterViewInit, computed, effect, inject, signal } from '@angular/core';
+import { PermissionService } from '../../../services/permission.service';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -10,8 +11,10 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { User } from '../../../models/menu';
 import { Entity, SettingsService } from '../../../services/settings.service';
+import { ErrorHandlerService } from '../../../services/error-handler.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { LoadingSkeletonTableComponent } from '../../../shared/components/loading-skeleton-table/loading-skeleton-table.component';
 import {
@@ -40,18 +43,23 @@ import {
   styleUrl: './user-management.component.scss',
 })
 export class UserManagementComponent implements AfterViewInit {
+  readonly perm = inject(PermissionService);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly errorHandler = inject(ErrorHandlerService);
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   dataSource = new MatTableDataSource<User>([]);
 
   displayedColumns: string[] = [
     'numero',
-    'avatar',
+    'code',
     'name',
     'email',
     'entity',
     'specialty',
     'profile',
+    'createdAt',
     'actions',
   ];
   isLoading = true;
@@ -116,7 +124,7 @@ export class UserManagementComponent implements AfterViewInit {
       const profileLabel = this.settingsService.getProfileLabel(data.profileId);
       const entityLabel = this.settingsService.getEntityLabel(data.entityId);
       const specialtyLabel = this.settingsService.getSpecialtyLabel(data.specialtyId);
-      const haystack = [data.name, data.email, profileLabel, entityLabel, specialtyLabel, data.avatar ?? '']
+      const haystack = [data.code ?? '', data.name, data.email, profileLabel, entityLabel, specialtyLabel, data.avatar ?? '']
         .join(' ')
         .toLowerCase();
       return haystack.includes(q);
@@ -152,7 +160,7 @@ export class UserManagementComponent implements AfterViewInit {
   }
 
   goToDetail(user: User): void {
-    void this.router.navigate(['/utilisateurs/ressources/detail', user.id]);
+    void this.router.navigate(['/utilisateurs/ressources', user.id]);
   }
 
   rowNumber(user: User): number {
@@ -172,9 +180,12 @@ export class UserManagementComponent implements AfterViewInit {
       },
     });
     dialogRef.afterClosed().subscribe((ok: boolean) => {
-      if (ok) {
-        this.settingsService.deleteUser(user.id);
-      }
+      if (!ok) return;
+      this.settingsService.deleteUser(user.id).subscribe({
+        next: () => this.snackBar.open('Ressource supprimée avec succès', 'Fermer', { duration: 3000 }),
+        error: (err: unknown) =>
+          this.snackBar.open(this.errorHandler.getErrorMessage(err), 'Fermer', { duration: 5000 }),
+      });
     });
   }
 

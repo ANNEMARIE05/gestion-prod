@@ -13,8 +13,8 @@
       <div>
         <h1 class="atypical-form-title">{{ pageTitle }}</h1>
         <p class="atypical-form-subtitle">
-          Nom du profil, puis cochez les menus visibles et les actions
-          autorisées par écran (selon l’habilitation).
+          Définissez le profil puis assignez les menus et actions autorisées
+          (comme dans l'ancien backoffice).
         </p>
         <div class="atypical-section-band mt-3"></div>
       </div>
@@ -32,62 +32,247 @@
       <div class="atypical-section">
         <h3 class="atypical-section-title">Informations</h3>
 
-        <mat-form-field appearance="fill" class="w-full ng-field-segmented">
-          <div matPrefix class="ng-field-segmented__prefix">
-            <mat-icon>badge</mat-icon>
-            <span
-              >Nom du profil<span class="ng-field-segmented__req">*</span></span
-            >
-          </div>
-          <input
-            matInput
-            [(ngModel)]="label"
-            name="plabel"
-            autocomplete="off"
-            placeholder="Ex. CHEF_PROJET"
-          />
-        </mat-form-field>
+        <div class="atypical-input-grid">
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>tag</mat-icon>
+              <span>Code<span class="ng-field-segmented__req">*</span></span>
+            </div>
+            <input
+              matInput
+              [(ngModel)]="code"
+              name="pcode"
+              [readonly]="!isCreate"
+              autocomplete="off"
+              placeholder="PROF-001"
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>badge</mat-icon>
+              <span>Libellé<span class="ng-field-segmented__req">*</span></span>
+            </div>
+            <input
+              matInput
+              [(ngModel)]="label"
+              name="plabel"
+              autocomplete="off"
+              placeholder="Ex. Chef de projet"
+            />
+          </mat-form-field>
+        </div>
       </div>
 
       <div class="atypical-section">
-        <h3 class="atypical-section-title">Menus et actions</h3>
-        <p class="text-sm text-gray-500 m-0">
-          Cochez les menus visibles, puis les actions autorisées pour chaque
-          menu (parmi celles définies à l’habilitation).
+        <h3 class="atypical-section-title">Habilitations</h3>
+        <p class="text-sm text-gray-500 m-0 mb-4">
+          Sélectionnez un menu, cochez les actions déjà assignées au profil (si
+          modification), puis ajoutez ou mettez à jour l'entrée.
         </p>
-        <div
-          class="atypical-soft-block max-h-[min(60vh,420px)] overflow-y-auto space-y-3"
-        >
-          @for (row of menusFlat(); track row.item.id) {
-            <div [style.margin-left.rem]="row.depth * 0.75">
-              <mat-checkbox
-                [checked]="isMenuOn(row.item.id)"
-                (change)="toggleMenu(row.item.id, $event.checked)"
-                class="font-medium"
-              >
-                {{ row.item.label }}
-                <span class="text-slate-400 font-normal text-xs ml-1">{{
-                  row.item.route
-                }}</span>
-              </mat-checkbox>
-              @if (isMenuOn(row.item.id)) {
-                <div class="mt-2 ml-6 flex flex-wrap gap-x-3 gap-y-1">
-                  @for (a of habActions(row.item.id); track a.id) {
-                    <mat-checkbox
-                      [checked]="isActionOn(row.item.id, a.id)"
-                      (change)="
-                        toggleAction(row.item.id, a.id, $event.checked)
-                      "
-                      class="!text-xs"
-                    >
-                      {{ a.label }}
-                    </mat-checkbox>
+
+        <div class="atypical-input-grid mb-4">
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>menu</mat-icon>
+              <span>Menu</span>
+            </div>
+            <mat-select
+              [(ngModel)]="selectedMenuId"
+              name="pmenu"
+              (selectionChange)="onMenuSelectChange()"
+              aria-label="Sélectionner un menu"
+            >
+              <mat-option [value]="null">Sélectionner un menu…</mat-option>
+              @for (menu of availableMenus(); track menu.id) {
+                <mat-option [value]="menu.id">{{ menu.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        @if (selectedMenuId) {
+          @if (loadingMenuActions()) {
+            <p class="text-sm text-slate-500 m-0 mb-3">Chargement des actions du menu…</p>
+          } @else if (menuAvailableActions().length === 0) {
+            <div class="atypical-soft-block flex gap-3 items-start mb-4">
+              <mat-icon class="text-slate-500 shrink-0 mt-0.5">info</mat-icon>
+              <p class="text-sm text-slate-600 m-0">
+                Aucune action associée à ce menu. Configurez d'abord les actions
+                sur le menu dans le paramétrage.
+              </p>
+            </div>
+          } @else {
+            <div class="atypical-soft-block space-y-3 mb-4">
+              <div class="relative actions-dropdown-container">
+                <button
+                  type="button"
+                  (click)="toggleActionsDropdown()"
+                  [disabled]="loadingMenuActions()"
+                  class="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[42px] flex items-center justify-between text-left disabled:opacity-60 disabled:cursor-not-allowed"
+                  [class.ring-2]="actionsDropdownOpen"
+                  [class.ring-primary-500]="actionsDropdownOpen"
+                >
+                  <div class="flex flex-wrap gap-1 flex-1 pr-2">
+                    @if (selectedActionIds().length === 0) {
+                      <span class="text-slate-400 text-sm">Sélectionner des actions…</span>
+                    }
+                    @for (action of selectedActions(); track action.actionId) {
+                      <span
+                        class="inline-flex items-center px-2 py-1 bg-primary-100 text-primary-800 text-sm rounded-md"
+                      >
+                        <mat-icon class="!text-sm !w-4 !h-4 mr-1 text-primary-600">{{
+                          action.icon || 'bolt'
+                        }}</mat-icon>
+                        {{ action.label }}
+                        <button
+                          type="button"
+                          (click)="removeAction(action.actionId, $event)"
+                          class="ml-1 text-primary-600 hover:text-primary-900 focus:outline-none"
+                          [attr.aria-label]="'Retirer ' + action.label"
+                        >
+                          <mat-icon class="!text-xs !w-3 !h-3">close</mat-icon>
+                        </button>
+                      </span>
+                    }
+                  </div>
+                  <mat-icon
+                    class="text-slate-400 shrink-0 transition-transform"
+                    [class.rotate-180]="actionsDropdownOpen"
+                  >
+                    expand_more
+                  </mat-icon>
+                </button>
+
+                @if (actionsDropdownOpen) {
+                  <div
+                    class="absolute z-50 w-full mt-1 bg-white border border-slate-300 rounded-lg shadow-lg max-h-60 overflow-auto"
+                  >
+                    <div class="p-2">
+                      @for (action of menuAvailableActions(); track action.actionId) {
+                        <label
+                          class="flex items-center px-3 py-2 hover:bg-slate-50 rounded cursor-pointer"
+                          [attr.for]="'profile-action-' + action.actionId"
+                        >
+                          <input
+                            type="checkbox"
+                            class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 rounded cursor-pointer"
+                            [id]="'profile-action-' + action.actionId"
+                            [checked]="isActionSelected(action.actionId)"
+                            (change)="toggleAction(action.actionId)"
+                          />
+                          <span class="ml-3 text-sm text-slate-700 flex-1 flex items-center">
+                            <mat-icon class="!text-base !w-4 !h-4 mr-2 text-amber-600">{{
+                              action.icon || 'bolt'
+                            }}</mat-icon>
+                            {{ action.label }}
+                          </span>
+                        </label>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+
+              @if (selectedActionIds().length > 0) {
+                <p class="text-xs text-slate-500 m-0">
+                  {{ selectedActionIds().length }} action(s) sélectionnée(s)
+                </p>
+              }
+
+              @if (editingHabilitationIndex() !== null && hasPendingActionChanges()) {
+                <div
+                  class="rounded-lg border border-amber-200 bg-amber-50/80 px-3 py-2 text-sm text-amber-900"
+                >
+                  <span class="font-semibold">Modifications en attente :</span>
+                  @if (pendingAdds().length > 0) {
+                    <span class="ml-2">+ {{ pendingAddsLabel() }}</span>
+                  }
+                  @if (pendingRemoves().length > 0) {
+                    <span class="ml-2">− {{ pendingRemovesLabel() }}</span>
                   }
                 </div>
               }
             </div>
           }
-        </div>
+
+          <div class="flex flex-wrap gap-2 mb-6">
+            <button
+              type="button"
+              mat-flat-button
+              color="primary"
+              [disabled]="!canCommitHabilitation"
+              (click)="commitHabilitation()"
+            >
+              <mat-icon class="mr-1">add</mat-icon>
+              {{ habilitationCommitLabel }}
+            </button>
+            @if (editingHabilitationIndex() !== null) {
+              <button type="button" mat-button (click)="cancelHabilitationEdit()">
+                Annuler la modification
+              </button>
+            }
+          </div>
+        }
+
+        @if (habilitations().length > 0) {
+          <h4 class="text-sm font-semibold text-gray-800 mb-3">
+            Menus et actions assignés au profil
+          </h4>
+          <div class="space-y-3">
+            @for (hab of habilitations(); track hab.menuId; let i = $index) {
+              <div class="atypical-soft-block p-4">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-semibold text-gray-900 m-0 flex items-center gap-2">
+                      <mat-icon class="!text-lg text-primary-600">menu</mat-icon>
+                      {{ hab.menuLabel }}
+                    </p>
+                    @if (hab.actionIds.length > 0) {
+                      <div class="flex flex-wrap gap-2 mt-3">
+                        @for (actionId of hab.actionIds; track actionId) {
+                          <span
+                            class="inline-flex items-center px-2.5 py-1 bg-primary-50 text-primary-800 text-xs font-medium rounded-md"
+                          >
+                            {{ getActionLabel(hab.menuId, actionId) }}
+                          </span>
+                        }
+                      </div>
+                    } @else {
+                      <p class="text-xs text-gray-500 italic mt-2 m-0">
+                        Aucune action sélectionnée
+                      </p>
+                    }
+                  </div>
+                  <div class="flex items-center gap-1 shrink-0">
+                    <button
+                      mat-icon-button
+                      type="button"
+                      class="text-gray-400 hover:text-primary"
+                      matTooltip="Modifier les actions"
+                      (click)="editHabilitation(i)"
+                    >
+                      <mat-icon class="!text-lg">edit</mat-icon>
+                    </button>
+                    <button
+                      mat-icon-button
+                      type="button"
+                      class="text-gray-400 hover:text-red-500"
+                      matTooltip="Retirer le menu"
+                      (click)="removeHabilitation(i)"
+                    >
+                      <mat-icon class="!text-lg">delete_outline</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="text-sm text-gray-500 italic m-0">
+            Aucun menu assigné. Ajoutez des menus pour définir les habilitations.
+          </p>
+        }
       </div>
 
       <div class="atypical-form-actions">
@@ -108,7 +293,7 @@
           (click)="save()"
           class="!px-12 !py-6 shadow-lg shadow-primary/20"
         >
-          {{ isCreate ? "Créer" : "Enregistrer" }}
+          {{ isCreate ? 'Créer' : 'Enregistrer' }}
         </button>
       </div>
     </div>

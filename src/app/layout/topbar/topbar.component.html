@@ -1,10 +1,21 @@
 <mat-toolbar class="!bg-white !h-20 border-b border-gray-100 flex justify-between px-8">
   <div class="flex items-center gap-6">
+    <!-- Mobile : ouvre/ferme le tiroir de navigation -->
+    <button mat-icon-button
+            (click)="toggleMobileSidebar()"
+            [matTooltip]="mobileSidebarOpen() ? 'Fermer le menu' : 'Ouvrir le menu'"
+            matTooltipPosition="below"
+            class="lg:!hidden !text-slate-600 hover:!text-primary transition-colors"
+            aria-label="Ouvrir le menu de navigation">
+      <mat-icon>{{ mobileSidebarOpen() ? 'menu_open' : 'menu' }}</mat-icon>
+    </button>
+
+    <!-- Desktop : replie/déplie la sidebar -->
     <button mat-icon-button
             (click)="toggleSidebar()"
             [matTooltip]="sidebarCollapsed() ? 'Déplier la sidebar' : 'Replier la sidebar'"
             matTooltipPosition="below"
-            class="!text-slate-600 hover:!text-primary transition-colors"
+            class="!hidden lg:!inline-flex !text-slate-600 hover:!text-primary transition-colors"
             aria-label="Basculer la sidebar">
       <mat-icon>{{ sidebarCollapsed() ? 'menu_open' : 'menu' }}</mat-icon>
     </button>

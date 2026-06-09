@@ -5,8 +5,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { SettingsService } from '../../../services/settings.service';
 import { AuthService } from '../../../services/auth.service';
+import { ErrorHandlerService } from '../../../services/error-handler.service';
+import { RessourcesService } from '../../../services/ressources.service';
 import { ButtonLoadingDirective } from '../../../shared/directives/button-loading.directive';
 
 @Component({
@@ -20,6 +23,7 @@ import { ButtonLoadingDirective } from '../../../shared/directives/button-loadin
     MatIconModule,
     MatInputModule,
     ButtonLoadingDirective,
+    MatSnackBarModule,
   ],
   templateUrl: './profile-page.component.html',
   styleUrl: './profile-page.component.scss',
@@ -27,6 +31,9 @@ import { ButtonLoadingDirective } from '../../../shared/directives/button-loadin
 export class ProfilePageComponent {
   private readonly authService = inject(AuthService);
   private readonly settingsService = inject(SettingsService);
+  private readonly ressourcesApi = inject(RessourcesService);
+  private readonly errorHandler = inject(ErrorHandlerService);
+  private readonly snackBar = inject(MatSnackBar);
 
   readonly currentUser = this.authService.currentUser;
   readonly profileLabel = computed(() => {
@@ -68,21 +75,37 @@ export class ProfilePageComponent {
     }
 
     this.savingInfos.set(true);
-    setTimeout(() => {
-      this.authService.updateCurrentUser({
-        firstName,
-        lastName,
+    const user = this.authService.currentUser();
+    if (!user) {
+      this.infoError = 'Session invalide.';
+      this.savingInfos.set(false);
+      return;
+    }
+
+    this.ressourcesApi
+      .update(Number(user.id), {
+        prenoms: firstName,
+        nom: lastName,
         email,
         contact: this.contact.trim() || undefined,
+      })
+      .subscribe({
+        next: () => {
+          this.authService.updateCurrentUser({
+            firstName,
+            lastName,
+            email,
+            contact: this.contact.trim() || undefined,
+          });
+          this.settingsService.refreshSettings();
+          this.infoMessage = 'Informations mises à jour.';
+          this.savingInfos.set(false);
+        },
+        error: (err) => {
+          this.infoError = this.errorHandler.getErrorMessage(err);
+          this.savingInfos.set(false);
+        },
       });
-
-      const updated = this.authService.currentUser();
-      if (updated) {
-        this.settingsService.updateUser(updated);
-      }
-      this.infoMessage = 'Informations mises à jour.';
-      this.savingInfos.set(false);
-    }, 600);
   }
 
   savePassword(): void {
@@ -98,21 +121,24 @@ export class ProfilePageComponent {
       this.passwordError = 'La confirmation ne correspond pas au nouveau mot de passe.';
       return;
     }
+    if (this.newPassword.length < 8) {
+      this.passwordError = 'Le nouveau mot de passe doit contenir au moins 8 caractères.';
+      return;
+    }
 
     this.savingPassword.set(true);
-    setTimeout(() => {
-      const result = this.authService.changePassword(this.currentPassword, this.newPassword);
-      if (!result.success) {
-        this.passwordError = result.message;
+    this.authService.changePassword(this.currentPassword, this.newPassword).subscribe({
+      next: (result) => {
+        this.currentPassword = '';
+        this.newPassword = '';
+        this.confirmPassword = '';
+        this.passwordMessage = result.message;
         this.savingPassword.set(false);
-        return;
-      }
-
-      this.currentPassword = '';
-      this.newPassword = '';
-      this.confirmPassword = '';
-      this.passwordMessage = result.message;
-      this.savingPassword.set(false);
-    }, 600);
+      },
+      error: (err) => {
+        this.passwordError = this.errorHandler.getErrorMessage(err);
+        this.savingPassword.set(false);
+      },
+    });
   }
 }

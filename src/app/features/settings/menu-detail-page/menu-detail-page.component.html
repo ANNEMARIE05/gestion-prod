@@ -1,0 +1,113 @@
+<ng-container *ngIf="menu() as m; else missingMenu">
+  <div class="atypical-form-shell">
+    <div class="atypical-form-header">
+      <div class="flex items-start gap-4 min-w-0 flex-1">
+        <button
+          mat-icon-button
+          type="button"
+          routerLink="/parametrages/menus"
+          class="!bg-white shadow-sm hover:shadow-md transition-shadow !rounded-md mt-1 flex-shrink-0"
+        >
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+
+        <div class="min-w-0">
+          <h1 class="atypical-form-title m-0">{{ m.label }}</h1>
+          <p class="atypical-form-subtitle m-0 mt-1">Menu</p>
+          <div class="atypical-section-band mt-3"></div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-2 justify-end">
+        @if (perm.canEdit()) {
+          <button
+            mat-stroked-button
+            type="button"
+            [routerLink]="['/parametrages/menus/edit', m.id]"
+            class="!rounded-md !border-gray-200"
+          >
+            <mat-icon class="mr-2">edit</mat-icon>
+            Modifier
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="atypical-form-card space-y-8">
+      <div class="atypical-section">
+        <h3 class="atypical-section-title">Informations générales</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="atypical-soft-block p-4">
+            <p class="text-xs text-gray-500 m-0">Code</p>
+            <p class="text-sm font-semibold text-gray-900 m-0 mt-1">{{ m.code || '—' }}</p>
+          </div>
+
+          <div class="atypical-soft-block p-4">
+            <p class="text-xs text-gray-500 m-0">Libellé</p>
+            <p class="text-sm font-semibold text-gray-900 m-0 mt-1">{{ m.label }}</p>
+          </div>
+
+          <div class="atypical-soft-block p-4">
+            <p class="text-xs text-gray-500 m-0">Icône</p>
+            <p class="text-sm font-semibold text-gray-900 m-0 mt-1 inline-flex items-center gap-2">
+              <mat-icon class="!text-base">{{ m.icon }}</mat-icon>
+              <span>{{ m.icon }}</span>
+            </p>
+          </div>
+
+          <div class="atypical-soft-block p-4">
+            <p class="text-xs text-gray-500 m-0">Lien (route)</p>
+            <p class="text-sm font-semibold text-gray-900 m-0 mt-1">{{ m.route }}</p>
+          </div>
+
+          <div class="atypical-soft-block p-4">
+            <p class="text-xs text-gray-500 m-0">Menu parent</p>
+            <p class="text-sm font-semibold text-gray-900 m-0 mt-1">{{ getParentLabel() }}</p>
+          </div>
+
+          <div class="atypical-soft-block p-4">
+            <p class="text-xs text-gray-500 m-0">Statut</p>
+            <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+              {{ m.active ? 'Actif' : 'Inactif' }}
+            </p>
+          </div>
+
+          <div class="atypical-soft-block p-4">
+            <p class="text-xs text-gray-500 m-0">Date de création</p>
+            <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+              {{ m.createdAt ? (m.createdAt | date: 'dd/MM/yyyy') : '—' }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="atypical-section">
+        <h3 class="atypical-section-title">Actions associées</h3>
+
+        @if (loadingActions()) {
+          <p class="text-sm text-gray-500 m-0">Chargement des actions…</p>
+        } @else if (menuActions().length === 0) {
+          <p class="text-sm text-gray-500 m-0">Aucune action assignée à ce menu.</p>
+        } @else {
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            @for (action of menuActions(); track action.actionId) {
+              <div
+                class="flex items-center gap-3 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg"
+              >
+                <mat-icon class="!text-lg text-amber-600 shrink-0">{{
+                  action.icon || 'bolt'
+                }}</mat-icon>
+                <p class="text-sm font-medium text-gray-900 m-0">{{ action.actionId }}</p>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</ng-container>
+
+<ng-template #missingMenu>
+  <div class="p-8 text-center text-gray-500">Menu introuvable.</div>
+</ng-template>

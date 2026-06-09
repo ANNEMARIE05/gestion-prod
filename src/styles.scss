@@ -37,6 +37,18 @@ body {
   @apply shadow-2xl -translate-y-1 border-brand-accent/10;
 }
 
+/* Scroll horizontal uniquement (barre en bas du tableau) */
+.app-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+
+  table {
+    min-width: 100%;
+  }
+}
+
 .brand-gradient {
   background: linear-gradient(
     145deg,
@@ -247,6 +259,34 @@ aside::after {
 .app-list-filters {
   @apply flex flex-row flex-wrap items-end gap-2.5 shrink-0;
   overflow: visible;
+}
+
+/* Champ date dans la barre filtres : même gabarit que les selects pour un alignement net avec le tableau */
+.app-list-filters > .app-search-shell {
+  min-height: 2.5rem;
+  flex: 0 0 auto;
+}
+
+/* Bouton compact « Télécharger modèle » placé au niveau de la recherche / filtres */
+.app-toolbar-template-btn.mat-mdc-button-base {
+  min-height: 2.5rem;
+  height: 2.5rem;
+  padding: 0 0.85rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1;
+  color: #475569;
+  border-color: #cbd5e1 !important;
+  background: #fff;
+  white-space: nowrap;
+}
+
+.app-toolbar-template-btn .mat-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+  margin-right: 0.35rem;
 }
 
 /* Panneau du select : au-dessus des cartes / pas masqué par un parent */

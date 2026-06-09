@@ -21,20 +21,52 @@
       </div>
 
       <div class="flex flex-wrap gap-2 justify-end">
-        <button
-          mat-stroked-button
-          [routerLink]="['/production/edit', item.id]"
-          class="!rounded-md !border-gray-200"
-          type="button"
-        >
-          <mat-icon class="mr-2">edit</mat-icon>
+        @if (perm.canEdit()) {
+          <button
+            mat-stroked-button
+            [routerLink]="editRoute"
+            class="!rounded-md !border-gray-200"
+            type="button"
+          >
+            <mat-icon class="mr-2">edit</mat-icon>
 
-          Modifier
-        </button>
+            Modifier
+          </button>
+        }
+
+        @if (perm.canDelete()) {
+          <button
+            mat-stroked-button
+            color="warn"
+            (click)="confirmDelete()"
+            class="!rounded-md"
+            type="button"
+          >
+            <mat-icon class="mr-2">delete_outline</mat-icon>
+
+            Supprimer
+          </button>
+        }
       </div>
     </div>
 
     <div class="atypical-form-card space-y-8">
+      <div class="atypical-section">
+        <h3 class="atypical-section-title">Informations générales</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="atypical-soft-block p-4">
+            <p class="text-xs text-gray-500 m-0">Date de création</p>
+            <p class="text-sm font-semibold text-gray-900 m-0 mt-1">
+              @if (item.createdAt) {
+                {{ item.createdAt | date: "dd/MM/yyyy" }}
+              } @else {
+                —
+              }
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div class="atypical-section">
         <h3 class="atypical-section-title">Description</h3>
 
@@ -132,7 +164,7 @@
     <button
       mat-flat-button
       color="primary"
-      routerLink="/production/projets"
+      [routerLink]="backRoute"
       type="button"
     >
       Retour aux projets

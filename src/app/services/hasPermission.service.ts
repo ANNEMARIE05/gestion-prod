@@ -1,0 +1,62 @@
+import { Injectable } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class HasPermissionService {
+  hasPermission(menuCode: string, actionId: string): boolean {
+    if (!menuCode || !actionId) {
+      return false;
+    }
+
+    const userInfosStr = localStorage.getItem('userInfos');
+    if (!userInfosStr) {
+      return false;
+    }
+
+    let userInfos: { profil?: { profilMenuActions?: unknown[] } };
+    try {
+      userInfos = JSON.parse(userInfosStr);
+    } catch {
+      return false;
+    }
+
+    const profilMenuActions = userInfos?.profil?.profilMenuActions;
+    if (!Array.isArray(profilMenuActions)) {
+      return false;
+    }
+
+    const menuFound = profilMenuActions.find((pma: unknown) => {
+      const entry = pma as { menu?: { code?: string; actions?: unknown[] } };
+      return entry?.menu?.code === menuCode;
+    }) as { menu?: { actions?: unknown[] } } | undefined;
+
+    if (!menuFound?.menu?.actions || !Array.isArray(menuFound.menu.actions)) {
+      return false;
+    }
+
+    return menuFound.menu.actions.some((action: unknown) =>
+      this.actionMatches(action, actionId),
+    );
+  }
+
+  private actionMatches(action: unknown, actionId: string): boolean {
+    const normalized = actionId.toUpperCase();
+    const record = action as {
+      id?: { actionId?: string; code?: string };
+      code?: string;
+      libelle?: string;
+    };
+
+    const candidates = [
+      record?.id?.actionId,
+      record?.code,
+      record?.id?.code,
+      record?.libelle,
+    ]
+      .filter(Boolean)
+      .map((value) => String(value).toUpperCase());
+
+    return candidates.includes(normalized);
+  }
+}

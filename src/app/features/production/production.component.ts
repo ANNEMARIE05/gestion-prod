@@ -1,10 +1,15 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { PermissionService } from '../../services/permission.service';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { ProjectListComponent } from './project-list/project-list.component';
 import { ProductionType } from '../../models/production';
+import { APP_ROUTES, productionCreateRoute } from '../../utils/app-routes';
+import { ProductionService } from '../../services/production.service';
+import { ErrorHandlerService } from '../../services/error-handler.service';
 
 interface ProductionPageMeta {
   title: string;
@@ -59,6 +64,11 @@ const PAGE_META: Record<ProductionType, ProductionPageMeta> = {
   styleUrl: './production.component.scss'
 })
 export class ProductionComponent {
+  readonly perm = inject(PermissionService);
+  private readonly productionService = inject(ProductionService);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly errorHandler = inject(ErrorHandlerService);
+
   type = signal<ProductionType>('PROJECT');
   meta = signal<ProductionPageMeta>(PAGE_META['PROJECT']);
 
@@ -71,6 +81,78 @@ export class ProductionComponent {
   }
 
   openCreate(): void {
-    this.router.navigate(['/production/new'], { queryParams: { type: this.type() } });
+    void this.router.navigate([productionCreateRoute(this.type())]);
+  }
+
+  /** Préfixe de fichier selon le type courant (projet, audit, veille). */
+  private fileBaseName(): string {
+    switch (this.type()) {
+      case 'AUDIT':
+        return 'audits';
+      case 'ENGINEERING':
+        return 'veilles';
+      case 'MONITORING':
+        return 'monitoring';
+      default:
+        return 'projets';
+    }
+  }
+
+  exportCsv(): void {
+    this.productionService.exportCsv(this.type()).subscribe({
+      next: (blob) => {
+        if (!blob) {
+          return;
+        }
+        const date = new Date().toISOString().split('T')[0];
+        this.downloadBlob(blob, `${this.fileBaseName()}_${date}.csv`);
+      },
+      error: (err: unknown) =>
+        this.snackBar.open(this.errorHandler.getErrorMessage(err), 'Fermer', { duration: 5000 }),
+    });
+  }
+
+  downloadTemplateCsv(): void {
+    this.productionService.downloadTemplate(this.type()).subscribe({
+      next: (blob) => {
+        if (!blob) {
+          return;
+        }
+        this.downloadBlob(blob, `modele_${this.fileBaseName()}.csv`);
+      },
+      error: (err: unknown) =>
+        this.snackBar.open(this.errorHandler.getErrorMessage(err), 'Fermer', { duration: 5000 }),
+    });
+  }
+
+  importCsv(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) {
+      return;
+    }
+    this.productionService.importCsv(this.type(), file).subscribe({
+      next: (response) => {
+        input.value = '';
+        if (response.status >= 200 && response.status < 300) {
+          this.snackBar.open('Import réussi', 'Fermer', { duration: 3000 });
+        } else {
+          this.snackBar.open("Erreur lors de l'import", 'Fermer', { duration: 5000 });
+        }
+      },
+      error: (err: unknown) => {
+        input.value = '';
+        this.snackBar.open(this.errorHandler.getErrorMessage(err), 'Fermer', { duration: 5000 });
+      },
+    });
+  }
+
+  private downloadBlob(blob: Blob, filename: string): void {
+    const url = URL.createObjectURL(new Blob([blob], { type: 'text/csv;charset=utf-8;' }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    anchor.click();
+    URL.revokeObjectURL(url);
   }
 }

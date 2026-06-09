@@ -8,6 +8,10 @@ export class LayoutService {
 
   sidebarCollapsed = signal<boolean>(this.readInitialState());
 
+  // État du tiroir (drawer) de la sidebar sur mobile. Indépendant de
+  // sidebarCollapsed qui ne concerne que le repli sur desktop.
+  mobileSidebarOpen = signal<boolean>(false);
+
   constructor() {
     effect(() => {
       const collapsed = this.sidebarCollapsed();
@@ -24,6 +28,18 @@ export class LayoutService {
 
   setSidebarCollapsed(collapsed: boolean): void {
     this.sidebarCollapsed.set(collapsed);
+  }
+
+  toggleMobileSidebar(): void {
+    this.mobileSidebarOpen.update((v) => !v);
+  }
+
+  openMobileSidebar(): void {
+    this.mobileSidebarOpen.set(true);
+  }
+
+  closeMobileSidebar(): void {
+    this.mobileSidebarOpen.set(false);
   }
 
   private readInitialState(): boolean {

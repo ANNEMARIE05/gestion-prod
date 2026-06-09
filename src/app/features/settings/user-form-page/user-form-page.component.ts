@@ -7,8 +7,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { User } from '../../../models/menu';
 import { Entity, SettingsService } from '../../../services/settings.service';
+import { ErrorHandlerService } from '../../../services/error-handler.service';
 import { ButtonLoadingDirective } from '../../../shared/directives/button-loading.directive';
 
 function initialsFromPerson(firstName: string, lastName: string): string {
@@ -47,11 +49,14 @@ export class UserFormPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   readonly settings = inject(SettingsService);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly errorHandler = inject(ErrorHandlerService);
 
   isCreate = true;
   existingId: string | null = null;
   readonly loading = signal(false);
 
+  code = '';
   lastName = '';
   firstName = '';
   email = '';
@@ -96,9 +101,10 @@ export class UserFormPageComponent implements OnInit {
 
   ngOnInit(): void {
     const url = this.router.url;
-    if (url.includes('/nouveau')) {
+    if (url.includes('/create') || url.includes('/nouveau')) {
       this.isCreate = true;
       this.existingId = null;
+      this.code = this.settings.generatePrefixedCode('RES', this.settings.allUsers());
       const entities = this.rootEntities;
       this.entityId = entities.find((e) => e.active)?.id ?? entities[0]?.id ?? '';
       this.syncSubEntityState();
@@ -109,28 +115,36 @@ export class UserFormPageComponent implements OnInit {
     }
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      const u = this.settings.allUsers().find((x) => x.id === id);
-      if (!u) {
-        void this.router.navigate([this.backRoute]);
-        return;
-      }
       this.isCreate = false;
       this.existingId = id;
-      this.lastName = u.lastName;
-      this.firstName = u.firstName;
-      this.email = u.email;
-      this.contact = u.contact ?? '';
-      const selectedEntity = this.settings.getEntityById(u.entityId);
-      if (selectedEntity?.parentId) {
-        this.entityId = selectedEntity.parentId;
-        this.subEntityId = selectedEntity.id;
-      } else {
-        this.entityId = u.entityId;
-        this.syncSubEntityState();
-      }
-      this.profileId = u.profileId;
-      this.specialtyId = u.specialtyId;
+      this.loading.set(true);
+      this.settings.loadUserById(id).subscribe((u) => {
+        this.loading.set(false);
+        if (!u) {
+          void this.router.navigate([this.backRoute]);
+          return;
+        }
+        this.applyUser(u);
+      });
     }
+  }
+
+  private applyUser(u: User): void {
+    this.code = u.code ?? '';
+    this.lastName = u.lastName;
+    this.firstName = u.firstName;
+    this.email = u.email;
+    this.contact = u.contact ?? '';
+    const selectedEntity = this.settings.getEntityById(u.entityId);
+    if (selectedEntity?.parentId) {
+      this.entityId = selectedEntity.parentId;
+      this.subEntityId = selectedEntity.id;
+    } else {
+      this.entityId = u.entityId;
+      this.syncSubEntityState();
+    }
+    this.profileId = u.profileId;
+    this.specialtyId = u.specialtyId;
   }
 
   onEntityChange(): void {
@@ -138,7 +152,7 @@ export class UserFormPageComponent implements OnInit {
   }
 
   save(): void {
-    if (this.loading()) return;
+    if (this.loading() || !this.canSave) return;
     const ln = this.lastName.trim();
     const fn = this.firstName.trim();
     const e = this.email.trim();
@@ -147,28 +161,37 @@ export class UserFormPageComponent implements OnInit {
       return;
     }
     this.loading.set(true);
-    setTimeout(() => {
-      const displayName = `${fn} ${ln}`.trim();
-      const user: User = {
-        id: this.isCreate ? this.settings.generateId() : this.existingId!,
-        lastName: ln,
-        firstName: fn,
-        name: displayName,
-        email: e,
-        profileId: this.profileId,
-        entityId: selectedEntityId,
-        specialtyId: this.specialtyId,
-        avatar: initialsFromPerson(fn, ln),
-        ...(this.contact.trim() ? { contact: this.contact.trim() } : {}),
-      };
-      if (this.isCreate) {
-        this.settings.addUser(user);
-      } else {
-        this.settings.updateUser(user);
-      }
-      this.loading.set(false);
-      void this.router.navigate([this.backRoute]);
-    }, 600);
+    const displayName = `${fn} ${ln}`.trim();
+    const existing = this.existingId ? this.settings.getUserById(this.existingId) : undefined;
+    const user: User = {
+      id: this.isCreate ? '' : this.existingId!,
+      code: this.code.trim() || existing?.code,
+      lastName: ln,
+      firstName: fn,
+      name: displayName,
+      email: e,
+      profileId: this.profileId,
+      entityId: selectedEntityId,
+      specialtyId: this.specialtyId,
+      avatar: initialsFromPerson(fn, ln),
+      createdAt: existing?.createdAt,
+      ...(this.contact.trim() ? { contact: this.contact.trim() } : {}),
+    };
+    this.settings.persistUser(user, this.isCreate).subscribe({
+      next: () => {
+        this.loading.set(false);
+        this.snackBar.open(
+          this.isCreate ? 'Ressource créée avec succès' : 'Ressource modifiée avec succès',
+          'Fermer',
+          { duration: 3000 },
+        );
+        void this.router.navigate([this.backRoute]);
+      },
+      error: (err: unknown) => {
+        this.loading.set(false);
+        this.snackBar.open(this.errorHandler.getErrorMessage(err), 'Fermer', { duration: 5000 });
+      },
+    });
   }
 
   private syncSubEntityState(reset = false): void {

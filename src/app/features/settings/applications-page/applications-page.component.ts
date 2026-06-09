@@ -7,7 +7,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Application, SettingsService } from '../../../services/settings.service';
+import { ErrorHandlerService } from '../../../services/error-handler.service';
+import { PermissionService } from '../../../services/permission.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
@@ -26,20 +29,25 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
   templateUrl: './applications-page.component.html',
 })
 export class ApplicationsPageComponent implements AfterViewInit {
+  readonly perm = inject(PermissionService);
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   readonly settings = inject(SettingsService);
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly errorHandler = inject(ErrorHandlerService);
 
-  readonly displayedColumns: string[] = ['numero', 'label', 'description', 'creation', 'actions'];
+  readonly displayedColumns: string[] = ['numero', 'code', 'label', 'description', 'creation', 'actions'];
   readonly dataSource = new MatTableDataSource<Application>([]);
 
   constructor() {
     this.dataSource.filterPredicate = (row: Application, filter: string) => {
       const q = filter.trim().toLowerCase();
       if (!q) return true;
-      return [row.label, row.description ?? ''].join(' ').toLowerCase().includes(q);
+      const code = row.code || `APP-${row.id}`;
+      return [code, row.label, row.description ?? ''].join(' ').toLowerCase().includes(q);
     };
 
     effect(() => {
@@ -64,8 +72,16 @@ export class ApplicationsPageComponent implements AfterViewInit {
     return p.pageIndex * p.pageSize + indexOnPage + 1;
   }
 
+  displayCode(row: Application): string {
+    return row.code || `APP-${row.id}`;
+  }
+
+  goToDetail(row: Application): void {
+    void this.router.navigate(['/parametrages/applications', row.id]);
+  }
+
   goToEdit(row: Application): void {
-    void this.router.navigate(['/settings/applications/edit', row.id]);
+    void this.router.navigate(['/parametrages/applications/edit', row.id]);
   }
 
   remove(row: Application): void {
@@ -79,9 +95,12 @@ export class ApplicationsPageComponent implements AfterViewInit {
       },
     });
     dialogRef.afterClosed().subscribe((ok: boolean) => {
-      if (ok) {
-        this.settings.deleteApplication(row.id);
-      }
+      if (!ok) return;
+      this.settings.deleteApplication(row.id).subscribe({
+        next: () => this.snackBar.open('Application supprimée avec succès', 'Fermer', { duration: 3000 }),
+        error: (err: unknown) =>
+          this.snackBar.open(this.errorHandler.getErrorMessage(err), 'Fermer', { duration: 5000 }),
+      });
     });
   }
 

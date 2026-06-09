@@ -7,7 +7,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { ErrorHandlerService } from '../../../services/error-handler.service';
 import { Jalon, SettingsService } from '../../../services/settings.service';
+import { JalonsService } from '../../../services/jalons.service';
+import { PermissionService } from '../../../services/permission.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { LoadingSkeletonTableComponent } from '../../../shared/components/loading-skeleton-table/loading-skeleton-table.component';
 import { encodeTableFilter, decodeTableFilter } from '../../../utils/table-filter';
@@ -29,14 +33,19 @@ import { encodeTableFilter, decodeTableFilter } from '../../../utils/table-filte
   templateUrl: './jalons-page.component.html',
 })
 export class JalonsPageComponent implements AfterViewInit {
+  readonly perm = inject(PermissionService);
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   readonly settings = inject(SettingsService);
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly errorHandler = inject(ErrorHandlerService);
 
   readonly displayedColumns: string[] = [
     'numero',
+    'code',
     'label',
     'parent',
     'applications',
@@ -47,6 +56,8 @@ export class JalonsPageComponent implements AfterViewInit {
   isLoading = true;
 
   readonly filterSearch = signal('');
+
+  private readonly jalonsApi = inject(JalonsService);
 
   constructor() {
     this.dataSource.filterPredicate = (row: Jalon, raw: string) => {
@@ -98,11 +109,11 @@ export class JalonsPageComponent implements AfterViewInit {
   }
 
   goToEdit(row: Jalon): void {
-    void this.router.navigate(['/settings/jalons/edit', row.id]);
+    void this.router.navigate(['/parametrages/jalons/edit', row.id]);
   }
 
   goToDetail(row: Jalon): void {
-    void this.router.navigate(['/settings/jalons', row.id]);
+    void this.router.navigate(['/parametrages/jalons', row.id]);
   }
 
   getApplications(row: Jalon): string[] {
@@ -118,61 +129,61 @@ export class JalonsPageComponent implements AfterViewInit {
     return this.settings.getJalonById(row.parentId)?.label ?? '—';
   }
 
+  displayCode(row: Jalon): string {
+    return row.code || `JAL-${row.id}`;
+  }
+
   exportCsv(): void {
-    const rows = this.settings.allJalons().map((j) => ({
-      code: j.code,
-      libelle: j.label,
-      jalonParentCode: j.parentId ? (this.settings.getJalonById(j.parentId)?.code ?? '') : '',
-      applications: this.getApplications(j).join('|'),
-      creationDate: j.createdAt ? new Date(j.createdAt).toISOString().slice(0, 10) : '',
-    }));
-    const header = 'code,libelle,jalonParentCode,applications,creationDate';
-    const lines = rows.map((r) => [r.code, r.libelle, r.jalonParentCode, r.applications, r.creationDate].map((v) => this.csvEscape(v)).join(','));
-    this.downloadFile('jalons-export.csv', [header, ...lines].join('\n'), 'text/csv;charset=utf-8;');
+    this.jalonsApi.exportCsv().subscribe({
+      next: (response) => {
+        if (!response.body) {
+          return;
+        }
+        const date = new Date().toISOString().split('T')[0];
+        this.downloadBlob(response.body, `jalons_${date}.csv`);
+      },
+      error: (err: unknown) =>
+        this.snackBar.open(this.errorHandler.getErrorMessage(err), 'Fermer', { duration: 5000 }),
+    });
   }
 
   downloadTemplateCsv(): void {
-    const header = 'code,libelle,jalonParentCode,applications';
-    this.downloadFile('jalons-modele.csv', `${header}\n`, 'text/csv;charset=utf-8;');
+    this.jalonsApi.downloadTemplate().subscribe({
+      next: (response) => {
+        if (!response.body) {
+          return;
+        }
+        this.downloadBlob(response.body, 'modele_jalons.csv');
+      },
+      error: (err: unknown) =>
+        this.snackBar.open(this.errorHandler.getErrorMessage(err), 'Fermer', { duration: 5000 }),
+    });
   }
 
   importCsv(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const text = String(reader.result ?? '');
-      const lines = text.split(/\r?\n/).filter((line) => line.trim().length > 0);
-      if (lines.length <= 1) return;
-      const existingCodes = new Set(this.settings.allJalons().map((j) => j.code.toUpperCase()));
-      for (const line of lines.slice(1)) {
-        const [codeRaw, labelRaw] = line.split(',');
-        const code = (codeRaw ?? '').trim().toUpperCase();
-        const label = (labelRaw ?? '').trim();
-        if (!label) continue;
-        if (code && existingCodes.has(code)) continue;
-        this.settings.addJalon({
-          id: this.settings.generateId(),
-          code: code || label.toUpperCase().replace(/\s+/g, '_'),
-          label,
-          applicationIds: [],
-          createdAt: new Date(),
-          createdBy: 'Import CSV',
-        });
-      }
-      input.value = '';
-    };
-    reader.readAsText(file, 'utf-8');
+    if (!file) {
+      return;
+    }
+    this.jalonsApi.importCsv(file).subscribe({
+      next: (response) => {
+        input.value = '';
+        if (response.status >= 200 && response.status < 300) {
+          this.settings.refreshSettings();
+          this.snackBar.open('Import réussi', 'Fermer', { duration: 3000 });
+        } else {
+          this.snackBar.open('Erreur lors de l\'import', 'Fermer', { duration: 5000 });
+        }
+      },
+      error: (err: unknown) => {
+        input.value = '';
+        this.snackBar.open(this.errorHandler.getErrorMessage(err), 'Fermer', { duration: 5000 });
+      },
+    });
   }
 
-  private csvEscape(value: string): string {
-    const escaped = value.replace(/"/g, '""');
-    return `"${escaped}"`;
-  }
-
-  private downloadFile(filename: string, content: string, mime: string): void {
-    const blob = new Blob([content], { type: mime });
+  private downloadBlob(blob: Blob, filename: string): void {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
@@ -192,9 +203,12 @@ export class JalonsPageComponent implements AfterViewInit {
       },
     });
     dialogRef.afterClosed().subscribe((ok: boolean) => {
-      if (ok) {
-        this.settings.deleteJalon(row.id);
-      }
+      if (!ok) return;
+      this.settings.deleteJalon(row.id).subscribe({
+        next: () => this.snackBar.open('Jalon supprimé avec succès', 'Fermer', { duration: 3000 }),
+        error: (err: unknown) =>
+          this.snackBar.open(this.errorHandler.getErrorMessage(err), 'Fermer', { duration: 5000 }),
+      });
     });
   }
 }

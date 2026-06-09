@@ -1,7 +1,7 @@
 import { Component, DestroyRef, inject, signal, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -9,8 +9,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService } from '../../../services/auth.service';
+import { AuthStateService } from '../../../services/auth-state.service';
+import { ErrorHandlerService } from '../../../services/error-handler.service';
+import { SettingsService } from '../../../services/settings.service';
+import { getLandingRoute } from '../../../utils/app-routes';
 
-/** Délai après succès avant navigation (laisse l’animation se lire). */
+/** Délai après succès avant navigation (laisse l'animation se lire). */
 const POST_LOGIN_REDIRECT_MS = 780;
 
 @Component({
@@ -42,6 +46,9 @@ export class LoginComponent {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
+    private authState: AuthStateService,
+    private errorHandler: ErrorHandlerService,
+    private settingsService: SettingsService,
     private snackBar: MatSnackBar,
     private router: Router,
   ) {
@@ -61,17 +68,21 @@ export class LoginComponent {
     this.submitting.set(true);
     this.authService.login(email, password).subscribe({
       next: () => {
+        this.settingsService.refreshSettings();
         this.submitting.set(false);
         this.postLoginTransition.set(true);
         this.clearRedirectTimer();
         this.redirectTimer = setTimeout(() => {
           this.redirectTimer = null;
-          void this.router.navigate(['/dashboard']);
+          void this.router.navigate([getLandingRoute(this.authState.userInfos())]);
         }, POST_LOGIN_REDIRECT_MS);
       },
       error: (err: unknown) => {
         this.submitting.set(false);
-        const msg = loginErrorMessage(err);
+        const msg =
+          err instanceof Error && (err as any).httpError
+            ? this.errorHandler.getErrorMessage(err)
+            : loginErrorMessage(err);
         this.snackBar.open(msg, 'Fermer', { duration: 8000 });
       },
     });

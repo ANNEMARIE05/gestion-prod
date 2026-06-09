@@ -22,7 +22,10 @@ import { ProductionService } from '../../../services/production.service';
 
 import { SettingsService } from '../../../services/settings.service';
 
+import { ErrorHandlerService } from '../../../services/error-handler.service';
+
 import { ProductionType, ProductionItem } from '../../../models/production';
+import { productionListRoute } from '../../../utils/app-routes';
 
 import { ButtonLoadingDirective } from '../../../shared/directives/button-loading.directive';
 
@@ -67,6 +70,8 @@ import { ButtonLoadingDirective } from '../../../shared/directives/button-loadin
 export class ProductionFormPageComponent implements OnInit {
 
   private readonly settingsService = inject(SettingsService);
+
+  private readonly errorHandler = inject(ErrorHandlerService);
 
   readonly users = this.settingsService.allUsers;
 
@@ -193,9 +198,13 @@ export class ProductionFormPageComponent implements OnInit {
 
     this.itemId = this.route.snapshot.paramMap.get('id');
 
-    const typeParam = this.route.snapshot.queryParamMap.get('type');
-
-    if (typeParam && !this.itemId) this.type = typeParam as ProductionType;
+    const routeType = this.route.snapshot.data['type'] as ProductionType | undefined;
+    if (routeType) {
+      this.type = routeType;
+    } else {
+      const typeParam = this.route.snapshot.queryParamMap.get('type');
+      if (typeParam && !this.itemId) this.type = typeParam as ProductionType;
+    }
 
 
 
@@ -203,36 +212,21 @@ export class ProductionFormPageComponent implements OnInit {
 
       this.isEdit = true;
 
-      const items = this.productionService.allProductionItems();
-
-      const item = items.find(i => i.id === this.itemId);
+      const item = this.productionService.findItem(this.type, this.itemId);
 
       if (item) {
 
-        this.type = item.type;
+        this.patchFromItem(item);
 
-        this.form.patchValue({
+      } else {
 
-          libelle: item.libelle,
-
-          description: item.description ?? '',
-
-          resources:
-
-            item.type === 'PROJECT'
-
-              ? (item.resources ?? []).map(r => this.resolveUserId(r))
-
-              : [],
-
-          resourceUser: this.isAuditOrVeilleType(item.type)
-
-            ? this.resolveUserId(item.resources?.[0] ?? '')
-
-            : '',
-
-          tpm: item.tpm ? this.resolveUserId(item.tpm) : ''
-
+        // Accès direct par URL : recharger la liste avant de remplir le formulaire.
+        this.productionService.refreshItems().subscribe(() => {
+          const refreshed = this.productionService.findItem(this.type, this.itemId!);
+          if (refreshed) {
+            this.patchFromItem(refreshed);
+            this.applyValidatorsForType();
+          }
         });
 
       }
@@ -242,6 +236,38 @@ export class ProductionFormPageComponent implements OnInit {
 
 
     this.applyValidatorsForType();
+
+  }
+
+
+
+  private patchFromItem(item: ProductionItem): void {
+
+    this.type = item.type;
+
+    this.form.patchValue({
+
+      libelle: item.libelle,
+
+      description: item.description ?? '',
+
+      resources:
+
+        item.type === 'PROJECT'
+
+          ? (item.resources ?? []).map(r => this.resolveUserId(r))
+
+          : [],
+
+      resourceUser: this.isAuditOrVeilleType(item.type)
+
+        ? this.resolveUserId(item.resources?.[0] ?? '')
+
+        : '',
+
+      tpm: item.tpm ? this.resolveUserId(item.tpm) : ''
+
+    });
 
   }
 
@@ -263,7 +289,7 @@ export class ProductionFormPageComponent implements OnInit {
 
       if (this.isEdit && this.itemId) {
 
-        const existing = this.productionService.allProductionItems().find(i => i.id === this.itemId);
+        const existing = this.productionService.findItem(this.type, this.itemId);
 
         if (!existing) {
 
@@ -301,10 +327,16 @@ export class ProductionFormPageComponent implements OnInit {
 
         };
 
-        this.productionService.updateItem(merged).subscribe(() => {
-          this.snackBar.open('Modifié avec succès', 'Fermer', { duration: 3000 });
-          this.loading.set(false);
-          this.router.navigate([this.routeForType(this.type)]);
+        this.productionService.updateItem(merged).subscribe({
+          next: () => {
+            this.snackBar.open('Modifié avec succès', 'Fermer', { duration: 3000 });
+            this.loading.set(false);
+            this.router.navigate([this.routeForType(this.type)]);
+          },
+          error: (err) => {
+            this.loading.set(false);
+            this.errorHandler.showError(err, 'Échec de la modification');
+          },
         });
       } else {
         const resUser = ((raw.resourceUser as string) ?? '').trim();
@@ -321,10 +353,16 @@ export class ProductionFormPageComponent implements OnInit {
           tpm: this.type === 'PROJECT' ? tpmVal || undefined : undefined,
           createdAt: new Date(),
         };
-        this.productionService.addItem(data).subscribe(() => {
-          this.snackBar.open('Créé avec succès', 'Fermer', { duration: 3000 });
-          this.loading.set(false);
-          this.router.navigate([this.routeForType(this.type)]);
+        this.productionService.addItem(data).subscribe({
+          next: () => {
+            this.snackBar.open('Créé avec succès', 'Fermer', { duration: 3000 });
+            this.loading.set(false);
+            this.router.navigate([this.routeForType(this.type)]);
+          },
+          error: (err) => {
+            this.loading.set(false);
+            this.errorHandler.showError(err, 'Échec de la création');
+          },
         });
       }
     }, 600);
@@ -348,25 +386,7 @@ export class ProductionFormPageComponent implements OnInit {
 
 
   private routeForType(type: ProductionType): string {
-
-    switch (type) {
-
-      case 'AUDIT':
-
-        return '/production/audits';
-
-      case 'ENGINEERING':
-
-      case 'MONITORING':
-
-        return '/production/veille';
-
-      default:
-
-        return '/production/projets';
-
-    }
-
+    return productionListRoute(type);
   }
 
 }

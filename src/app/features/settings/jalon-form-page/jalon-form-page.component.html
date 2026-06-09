@@ -31,6 +31,20 @@
         <div class="atypical-input-grid">
           <mat-form-field appearance="fill" class="w-full ng-field-segmented">
             <div matPrefix class="ng-field-segmented__prefix">
+              <mat-icon>tag</mat-icon>
+              <span>Code<span class="ng-field-segmented__req">*</span></span>
+            </div>
+            <input
+              matInput
+              [(ngModel)]="code"
+              name="jcode"
+              autocomplete="off"
+              placeholder="JAL-001"
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="w-full ng-field-segmented">
+            <div matPrefix class="ng-field-segmented__prefix">
               <mat-icon>flag</mat-icon>
               <span>Libellé<span class="ng-field-segmented__req">*</span></span>
             </div>
@@ -50,7 +64,6 @@
             </div>
             <mat-select
               [(ngModel)]="parentId"
-              (ngModelChange)="onParentChange($event)"
               name="jparent"
               aria-label="Jalon parent"
             >
@@ -65,21 +78,18 @@
 
       <div class="atypical-section">
         <h3 class="atypical-section-title">Applications</h3>
-        @if (!canSelectApplications) {
-          <p class="text-xs text-slate-500 mb-3">
-            Optionnel: les applications se rattachent uniquement a un
-            sous-jalon.
-          </p>
-        }
+        <p class="text-xs text-slate-500 mb-3">
+          Optionnel: rattachez une ou plusieurs applications a ce jalon.
+        </p>
         <mat-form-field appearance="fill" class="w-full ng-field-segmented">
           <div matPrefix class="ng-field-segmented__prefix">
             <mat-icon>apps</mat-icon>
             <span>Applications</span>
           </div>
           <mat-select
-            [(ngModel)]="selectedApplicationId"
+            [(ngModel)]="selectedApplicationIds"
             name="japplications"
-            [disabled]="!canSelectApplications"
+            multiple
             aria-label="Applications liées"
           >
             @for (app of applicationOptions(); track app.id) {

@@ -7,8 +7,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AppAction } from '../../../models/authorization';
 import { SettingsService } from '../../../services/settings.service';
+import { ErrorHandlerService } from '../../../services/error-handler.service';
 import { ButtonLoadingDirective } from '../../../shared/directives/button-loading.directive';
 
 @Component({
@@ -23,6 +25,7 @@ import { ButtonLoadingDirective } from '../../../shared/directives/button-loadin
     MatInputModule,
     MatIconModule,
     MatSlideToggleModule,
+    MatSnackBarModule,
     ButtonLoadingDirective,
   ],
   templateUrl: './action-form-page.component.html',
@@ -30,6 +33,8 @@ import { ButtonLoadingDirective } from '../../../shared/directives/button-loadin
 export class ActionFormPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly errorHandler = inject(ErrorHandlerService);
   readonly settings = inject(SettingsService);
 
   isCreate = true;
@@ -41,7 +46,7 @@ export class ActionFormPageComponent implements OnInit {
   icon = 'bolt';
   active = true;
 
-  readonly backRoute = '/settings/actions';
+  readonly backRoute = '/parametrages/actions';
 
   get pageTitle(): string {
     return this.isCreate ? 'Nouvelle action' : 'Modifier l’action';
@@ -53,9 +58,10 @@ export class ActionFormPageComponent implements OnInit {
 
   ngOnInit(): void {
     const url = this.router.url;
-    if (url.includes('/nouveau')) {
+    if (url.includes('/create') || url.includes('/nouveau')) {
       this.isCreate = true;
       this.existingId = null;
+      this.code = this.settings.generatePrefixedCode('ACT', this.settings.allActions());
       this.icon = 'bolt';
       this.active = true;
       return;
@@ -79,21 +85,29 @@ export class ActionFormPageComponent implements OnInit {
   save(): void {
     if (!this.canSave || this.loading()) return;
     this.loading.set(true);
-    setTimeout(() => {
-      const action: AppAction = {
-        id: this.isCreate ? this.settings.generateId() : this.existingId!,
-        code: this.code.trim().toUpperCase(),
-        label: this.label.trim(),
-        icon: this.icon.trim() || 'bolt',
-        active: this.active,
-      };
-      if (this.isCreate) {
-        this.settings.addAction(action);
-      } else {
-        this.settings.updateAction(action);
-      }
-      this.loading.set(false);
-      void this.router.navigate([this.backRoute]);
-    }, 600);
+    const actionId = this.code.trim().toUpperCase();
+    const action: AppAction = {
+      id: this.isCreate ? '' : this.existingId!,
+      actionId,
+      code: actionId,
+      label: this.label.trim(),
+      icon: this.icon.trim() || 'bolt',
+      active: this.active,
+    };
+    this.settings.persistAction(action, this.isCreate).subscribe({
+      next: () => {
+        this.loading.set(false);
+        this.snackBar.open(
+          this.isCreate ? 'Action créée avec succès' : 'Action modifiée avec succès',
+          'Fermer',
+          { duration: 3000 },
+        );
+        void this.router.navigate([this.backRoute]);
+      },
+      error: (err: unknown) => {
+        this.loading.set(false);
+        this.snackBar.open(this.errorHandler.getErrorMessage(err), 'Fermer', { duration: 5000 });
+      },
+    });
   }
 }

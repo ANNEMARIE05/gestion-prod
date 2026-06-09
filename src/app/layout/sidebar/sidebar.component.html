@@ -12,7 +12,7 @@
       <span class="text-xl font-black text-slate-900 tracking-tight leading-none truncate">Gestion Prod</span>
       <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1 truncate">NGSER</span>
     </div>
-    <button *ngIf="!collapsed()"
+    <button *ngIf="!collapsed() && !mobile()"
             type="button"
             (click)="toggleSidebar()"
             matTooltip="Replier la sidebar"
@@ -20,6 +20,13 @@
             class="sidebar-toggle-btn flex-shrink-0"
             aria-label="Replier la sidebar">
       <mat-icon class="!text-lg">chevron_left</mat-icon>
+    </button>
+    <button *ngIf="mobile()"
+            type="button"
+            (click)="closeMobile()"
+            class="sidebar-toggle-btn flex-shrink-0"
+            aria-label="Fermer le menu">
+      <mat-icon class="!text-lg">close</mat-icon>
     </button>
   </div>
 
@@ -43,6 +50,7 @@
       <!-- Main Item -->
       <a *ngIf="!item.children"
          [routerLink]="item.route"
+         (click)="onMenuClick(item.route)"
          routerLinkActive="sidebar-item-active text-white"
          [matTooltip]="collapsed() ? item.label : ''"
          matTooltipPosition="right"
@@ -76,6 +84,7 @@
         <div *ngIf="isExpanded(item.id)" class="ml-4 border-l-2 border-blue-200/80 pl-2 space-y-1 py-1">
           <a *ngFor="let sub of item.children"
              [routerLink]="sub.route"
+             (click)="onMenuClick(sub.route)"
              routerLinkActive="sidebar-submenu-item-active"
              class="sidebar-submenu-item group">
             <span>{{sub.label}}</span>

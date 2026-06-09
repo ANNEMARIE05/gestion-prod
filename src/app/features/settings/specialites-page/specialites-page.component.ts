@@ -10,7 +10,10 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { ErrorHandlerService } from '../../../services/error-handler.service';
 import { SettingsService, Specialty } from '../../../services/settings.service';
+import { PermissionService } from '../../../services/permission.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { encodeTableFilter, decodeTableFilter } from '../../../utils/table-filter';
 
@@ -34,13 +37,17 @@ import { encodeTableFilter, decodeTableFilter } from '../../../utils/table-filte
   styleUrl: './specialites-page.component.scss',
 })
 export class SpecialitesPageComponent implements AfterViewInit {
+  readonly perm = inject(PermissionService);
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   readonly settings = inject(SettingsService);
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly errorHandler = inject(ErrorHandlerService);
 
-  readonly displayedColumns: string[] = ['numero', 'label', 'active', 'createdAt', 'actions'];
+  readonly displayedColumns: string[] = ['numero', 'code', 'label', 'active', 'createdAt', 'actions'];
   readonly dataSource = new MatTableDataSource<Specialty>([]);
 
   readonly rows = computed<Specialty[]>(() => this.settings.allSpecialties());
@@ -62,7 +69,8 @@ export class SpecialitesPageComponent implements AfterViewInit {
       if (!q) {
         return true;
       }
-      return row.label.toLowerCase().includes(q);
+      const code = row.code || `SPE-${row.id}`;
+      return [code, row.label].join(' ').toLowerCase().includes(q);
     };
 
     effect(() => {
@@ -113,8 +121,16 @@ export class SpecialitesPageComponent implements AfterViewInit {
     return p.pageIndex * p.pageSize + indexOnPage + 1;
   }
 
+  displayCode(row: Specialty): string {
+    return row.code || `SPE-${row.id}`;
+  }
+
+  goToDetail(row: Specialty): void {
+    void this.router.navigate(['/parametrages/specialites-techniques', row.id]);
+  }
+
   goToEdit(row: Specialty): void {
-    void this.router.navigate(['/settings/specialites/edit', row.id]);
+    void this.router.navigate(['/parametrages/specialites-techniques/edit', row.id]);
   }
 
   remove(row: Specialty): void {
@@ -128,9 +144,12 @@ export class SpecialitesPageComponent implements AfterViewInit {
       },
     });
     dialogRef.afterClosed().subscribe((ok: boolean) => {
-      if (ok) {
-        this.settings.deleteSpecialty(row.id);
-      }
+      if (!ok) return;
+      this.settings.deleteSpecialty(row.id).subscribe({
+        next: () => this.snackBar.open('Spécialité supprimée avec succès', 'Fermer', { duration: 3000 }),
+        error: (err: unknown) =>
+          this.snackBar.open(this.errorHandler.getErrorMessage(err), 'Fermer', { duration: 5000 }),
+      });
     });
   }
 }

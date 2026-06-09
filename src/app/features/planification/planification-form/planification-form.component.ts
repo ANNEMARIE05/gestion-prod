@@ -220,20 +220,27 @@ export class PlanificationFormComponent {
   });
 
   readonly subJalonApplicationOptions = computed(() => {
-    const subJalonId = this.selectedSubJalonId();
-    if (!subJalonId) {
+    // Niveau sélectionné : sous-jalon si présent, sinon jalon clé (parent),
+    // comme dans l'ancien projet (applications du jalon parent ou du sous-jalon).
+    const targetJalonId = this.selectedSubJalonId() || this.selectedJalonId();
+    if (!targetJalonId) {
       return [];
     }
-    const subJalon = this.settings.getJalonById(subJalonId);
-    const ids = subJalon?.applicationIds ?? [];
+    const jalon = this.settings.getJalonById(targetJalonId);
+    const ids = jalon?.applicationIds ?? [];
     return this.settings
       .allApplications()
       .filter((app) => app.active && ids.includes(app.id))
       .sort((a, b) => a.label.localeCompare(b.label));
   });
 
-  readonly showApplicationSelect = computed(() =>
-    !!this.selectedSubJalonId() && this.subJalonApplicationOptions().length > 0,
+  readonly showApplicationSelect = computed(
+    () => this.subJalonApplicationOptions().length > 0,
+  );
+
+  /** Le sous-jalon est obligatoire dès qu'un jalon sélectionné possède des sous-jalons. */
+  readonly isSubJalonRequired = computed(
+    () => this.subJalonOptions().length > 0 && !this.isEngineeringPlanningType(),
   );
 
   constructor() {
@@ -285,6 +292,16 @@ export class PlanificationFormComponent {
           this.form.controls.subJalonApplicationId.setValue('', { emitEvent: false });
         }
       }
+    });
+
+    effect(() => {
+      const ctrl = this.form.controls.subJalonId;
+      if (this.isSubJalonRequired()) {
+        ctrl.setValidators([Validators.required]);
+      } else {
+        ctrl.clearValidators();
+      }
+      ctrl.updateValueAndValidity({ emitEvent: false });
     });
 
     this.form.controls.jalonId.valueChanges.subscribe((value) => {

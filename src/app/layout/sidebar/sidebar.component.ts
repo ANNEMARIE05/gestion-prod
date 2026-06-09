@@ -1,12 +1,16 @@
-import { Component, signal, computed, inject } from '@angular/core';
+import { Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, NavigationEnd, Router } from '@angular/router';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { filter, Subscription } from 'rxjs';
 import { PermissionService } from '../../services/permission.service';
 import { LayoutService } from '../../services/layout.service';
+import { AuthService } from '../../services/auth.service';
+import { normalizeMenuRoute, menuLienGrantsPath } from '../../utils/app-routes';
+import { MenuItem } from '../../models/menu';
 
 @Component({
   selector: 'app-sidebar',
@@ -15,14 +19,67 @@ import { LayoutService } from '../../services/layout.service';
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'
 })
-export class SidebarComponent {
+export class SidebarComponent implements OnInit, OnDestroy {
   private layoutService = inject(LayoutService);
+  private authService = inject(AuthService);
+  private permissionService = inject(PermissionService);
+  private router = inject(Router);
+
+  // Quand la sidebar est utilisée comme tiroir mobile, elle est toujours
+  // affichée en pleine largeur (jamais repliée).
+  mobile = input<boolean>(false);
 
   menus = this.permissionService.visibleMenus;
   expandedMenus = signal<string[]>([]);
-  collapsed = this.layoutService.sidebarCollapsed;
+  collapsed = computed(() => (this.mobile() ? false : this.layoutService.sidebarCollapsed()));
 
-  constructor(private permissionService: PermissionService) {}
+  private routerSubscription?: Subscription;
+
+  ngOnInit(): void {
+    this.routerSubscription = this.router.events
+      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .subscribe(() => {
+        this.permissionService.syncCurrentMenuFromRoute();
+        if (this.mobile()) {
+          this.layoutService.closeMobileSidebar();
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.routerSubscription?.unsubscribe();
+  }
+
+  onMenuClick(route: string): void {
+    if (this.mobile()) {
+      this.layoutService.closeMobileSidebar();
+    }
+
+    if (!route || route === '#') {
+      return;
+    }
+
+    const normalizedRoute = normalizeMenuRoute(route);
+    const profilMenuActions = this.authService.userInfos()?.profil?.profilMenuActions;
+    if (!Array.isArray(profilMenuActions)) {
+      return;
+    }
+
+    const matches = profilMenuActions
+      .filter((pma: { menu?: { lien?: string } }) =>
+        menuLienGrantsPath(String(pma?.menu?.lien ?? ''), normalizedRoute),
+      )
+      .sort(
+        (a: { menu: { lien: string } }, b: { menu: { lien: string } }) =>
+          normalizeMenuRoute(b.menu.lien).length - normalizeMenuRoute(a.menu.lien).length,
+      );
+
+    const menuDetails = matches[0];
+
+    if (menuDetails?.menu) {
+      localStorage.setItem('currentMenu', JSON.stringify(menuDetails.menu));
+    }
+  }
 
   toggleExpand(id: string) {
     if (this.collapsed()) {
@@ -41,5 +98,9 @@ export class SidebarComponent {
 
   toggleSidebar() {
     this.layoutService.toggleSidebar();
+  }
+
+  closeMobile() {
+    this.layoutService.closeMobileSidebar();
   }
 }

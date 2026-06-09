@@ -1,137 +1,242 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { HttpErrorResponse } from '@angular/common/http';
-import { Observable, of, throwError } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { HttpClient, HttpResponse, HttpHeaders } from '@angular/common/http';
+import { Observable, tap, map, switchMap, of, catchError } from 'rxjs';
 import { User } from '../models/menu';
-import { AuditTrailService } from './audit-trail.service';
-import {
-  DEMO_LOGIN_EMAIL,
-  DEMO_LOGIN_PASSWORD,
-  createDemoUser,
-} from '../data/local-app-defaults';
+import { AuthStateService } from './auth-state.service';
+import { ProfilsService } from './profils.service';
+import { getEnv } from '../utils/env.utils';
+import { extractApiItem } from '../utils/api-response.utils';
+
+interface LoginPayload {
+  email: string;
+  password: string;
+}
+
+interface ChangePasswordPayload {
+  oldPassword: string;
+  newPassword: string;
+}
+
+function mapUserInfosToUser(userInfos: any): User | null {
+  if (!userInfos || typeof userInfos !== 'object') {
+    return null;
+  }
+  const prenoms = String(userInfos.prenoms ?? userInfos.firstName ?? '').trim();
+  const nom = String(userInfos.nom ?? userInfos.lastName ?? '').trim();
+  const name = `${prenoms} ${nom}`.trim() || String(userInfos.email ?? 'Utilisateur');
+  return {
+    id: String(userInfos.id ?? userInfos.code ?? ''),
+    name,
+    firstName: prenoms,
+    lastName: nom,
+    email: String(userInfos.email ?? ''),
+    profileId: String(
+      userInfos.profil?.id ??
+        userInfos.profilId ??
+        (typeof userInfos.profil === 'string' || typeof userInfos.profil === 'number'
+          ? userInfos.profil
+          : ''),
+    ),
+    entityId: String(userInfos.entite?.id ?? userInfos.entite ?? ''),
+    specialtyId: String(userInfos.specialite?.id ?? userInfos.specialite ?? ''),
+    avatar: userInfos.avatar,
+    contact: userInfos.contact ? String(userInfos.contact) : undefined,
+  };
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private static readonly PASSWORD_KEY = 'user_password';
+  private static readonly LEGACY_USER_KEY = 'user';
 
-  currentUser = signal<User | null>(null);
-  isAuthenticated = computed(() => !!this.currentUser());
+  private baseUrl = getEnv('apiBaseUrl');
+  private authState = inject(AuthStateService);
+  private profilsApi = inject(ProfilsService);
+  private http = inject(HttpClient);
+  private router = inject(Router);
 
-  constructor(
-    private router: Router,
-    private auditTrail: AuditTrailService,
-  ) {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
+  private userSignal = signal<User | null>(null);
+
+  currentUser = computed(() => this.userSignal());
+  isAuthenticated = computed(() => this.authState.isLoggedIn());
+
+  constructor() {
+    this.restoreSession();
+  }
+
+  private restoreSession(): void {
+    const userInfos = this.authState.userInfos();
+    if (userInfos && this.authState.isLoggedIn()) {
+      this.userSignal.set(mapUserInfosToUser(userInfos));
+      return;
+    }
+    const legacy = localStorage.getItem(AuthService.LEGACY_USER_KEY);
+    if (legacy) {
       try {
-        this.currentUser.set(JSON.parse(savedUser));
+        this.userSignal.set(JSON.parse(legacy));
       } catch {
-        localStorage.removeItem('user');
+        localStorage.removeItem(AuthService.LEGACY_USER_KEY);
       }
     }
   }
 
-  login(email: string, password: string): Observable<User> {
-    const ok =
-      email.trim().toLowerCase() === DEMO_LOGIN_EMAIL && password === DEMO_LOGIN_PASSWORD;
-    if (!ok) {
-      return throwError(
-        () =>
-          new HttpErrorResponse({
-            status: 401,
-            statusText: 'Unauthorized',
-          }),
-      );
+  private getAuthOptions() {
+    const token = this.authState.getToken();
+    if (token) {
+      return {
+        headers: new HttpHeaders({ Authorization: `Bearer ${token}` }),
+        observe: 'response' as const,
+      } as const;
     }
-    const user = createDemoUser();
-    return of(user).pipe(
-      tap((u) => {
-        this.currentUser.set(u);
-        localStorage.setItem('user', JSON.stringify(u));
-        if (!localStorage.getItem(AuthService.PASSWORD_KEY)) {
-          localStorage.setItem(AuthService.PASSWORD_KEY, DEMO_LOGIN_PASSWORD);
+    return { observe: 'response' as const } as const;
+  }
+
+  login(email: string, password: string): Observable<User> {
+    const payload: LoginPayload = { email: email.trim(), password };
+    return this.http
+      .post<any>(`${this.baseUrl}/auth/login`, payload, { observe: 'response' })
+      .pipe(
+        tap((res: HttpResponse<any>) => {
+          const body = res.body ?? {};
+          this.authState.setAuth(body);
+          localStorage.removeItem(AuthService.LEGACY_USER_KEY);
+        }),
+        switchMap(() => this.enrichUserInfosWithProfil()),
+        tap((userInfos) => {
+          if (userInfos) {
+            this.authState.setUserInfos(userInfos);
+          }
+          const user = mapUserInfosToUser(this.authState.userInfos());
+          if (user) {
+            this.userSignal.set(user);
+          }
+        }),
+        map(() => {
+          const user = this.userSignal();
+          if (!user) {
+            throw new Error('Réponse de connexion invalide : utilisateur absent.');
+          }
+          return user;
+        }),
+      );
+  }
+
+  /** Complète profilMenuActions depuis l'API profil si absent du login. */
+  private enrichUserInfosWithProfil(): Observable<any | null> {
+    const userInfos = this.authState.userInfos();
+    if (!userInfos) {
+      return of(null);
+    }
+
+    const existing = userInfos?.profil?.profilMenuActions;
+    if (Array.isArray(existing) && existing.length > 0) {
+      return of(userInfos);
+    }
+
+    const profilId = userInfos?.profil?.id ?? userInfos?.profilId;
+    if (profilId == null || profilId === '') {
+      return of(userInfos);
+    }
+
+    return this.profilsApi.getById(Number(profilId)).pipe(
+      map((res) => {
+        const profilData = extractApiItem(res) ?? res.body?.profil ?? res.body;
+        if (!profilData || typeof profilData !== 'object') {
+          return userInfos;
         }
-        this.auditTrail.logAction({
-          userId: u.id,
-          userName: u.name,
-          action: 'LOGIN',
-          module: 'AUTH',
-          details: `Connexion locale (${email.trim()})`,
-        });
+
+        const profilMenuActions =
+          profilData.profilMenuActions ??
+          userInfos?.profil?.profilMenuActions ??
+          [];
+
+        return {
+          ...userInfos,
+          profil: {
+            ...(typeof userInfos.profil === 'object' ? userInfos.profil : { id: profilId }),
+            ...profilData,
+            profilMenuActions: Array.isArray(profilMenuActions) ? profilMenuActions : [],
+          },
+        };
       }),
+      catchError(() => of(userInfos)),
     );
   }
 
-  updateCurrentUser(partial: Partial<User>) {
-    const existing = this.currentUser();
+  loginWithPayload(payload: LoginPayload): Observable<HttpResponse<any>> {
+    return this.http.post<any>(`${this.baseUrl}/auth/login`, payload, { observe: 'response' });
+  }
+
+  updateCurrentUser(partial: Partial<User>): void {
+    const existing = this.userSignal();
     if (!existing) {
       return;
     }
     const next: User = {
       ...existing,
       ...partial,
+      firstName: (partial.firstName ?? existing.firstName).trim(),
+      lastName: (partial.lastName ?? existing.lastName).trim(),
     };
-    next.firstName = next.firstName.trim();
-    next.lastName = next.lastName.trim();
     next.name = `${next.firstName} ${next.lastName}`.trim();
     next.email = next.email.trim();
     next.contact = next.contact?.trim() || undefined;
-    this.currentUser.set(next);
-    localStorage.setItem('user', JSON.stringify(next));
-    this.auditTrail.logAction({
-      userId: next.id,
-      userName: next.name,
-      action: 'UPDATE',
-      module: 'PROFILE',
-      details: 'Profil utilisateur (coordonnées) mis à jour',
-    });
-  }
+    this.userSignal.set(next);
 
-  changePassword(currentPassword: string, newPassword: string): { success: boolean; message: string } {
-    const saved = localStorage.getItem(AuthService.PASSWORD_KEY);
-    if (!saved) {
-      return {
-        success: false,
-        message:
-          'Aucun mot de passe local n’est enregistré sur cet appareil. Définissez d’abord un mot de passe via cette page après une première connexion, ou utilisez le backend lorsqu’il sera branché.',
-      };
-    }
-    if (currentPassword !== saved) {
-      return { success: false, message: 'Mot de passe actuel incorrect.' };
-    }
-    if (newPassword.length < 8) {
-      return { success: false, message: 'Le nouveau mot de passe doit contenir au moins 8 caractères.' };
-    }
-    localStorage.setItem(AuthService.PASSWORD_KEY, newPassword);
-    const u = this.currentUser();
-    if (u) {
-      this.auditTrail.logAction({
-        userId: u.id,
-        userName: u.name,
-        action: 'PASSWORD_CHANGE',
-        module: 'AUTH',
-        details: 'Mot de passe modifié',
+    const stored = this.authState.userInfos();
+    if (stored) {
+      this.authState.setUserInfos({
+        ...stored,
+        prenoms: next.firstName,
+        nom: next.lastName,
+        email: next.email,
+        contact: next.contact,
       });
     }
-    return { success: true, message: 'Mot de passe mis à jour avec succès.' };
   }
 
-  logout() {
-    const u = this.currentUser();
-    this.currentUser.set(null);
-    localStorage.removeItem('user');
-    if (u) {
-      this.auditTrail.logAction({
-        userId: u.id,
-        userName: u.name,
-        action: 'LOGOUT',
-        module: 'AUTH',
-        details: 'Déconnexion',
-      });
-    }
+  changePassword(
+    currentPassword: string,
+    newPassword: string,
+  ): Observable<{ success: boolean; message: string }> {
+    const payload: ChangePasswordPayload = {
+      oldPassword: currentPassword,
+      newPassword,
+    };
+    return this.http
+      .post(`${this.baseUrl}/auth/change-password`, payload, {
+        ...this.getAuthOptions(),
+        responseType: 'text' as const,
+      })
+      .pipe(
+        map(() => ({ success: true, message: 'Mot de passe mis à jour avec succès.' })),
+      );
+  }
+
+  changePasswordSync(
+    currentPassword: string,
+    newPassword: string,
+  ): { success: boolean; message: string } {
+    return {
+      success: false,
+      message: 'Utilisez changePassword() avec l’API backend.',
+    };
+  }
+
+  logout(): void {
+    this.userSignal.set(null);
+    this.authState.clearUser();
+    localStorage.removeItem(AuthService.LEGACY_USER_KEY);
     this.router.navigate(['/login']);
+  }
+
+  userInfos(): any | null {
+    return this.authState.userInfos();
+  }
+
+  getToken(): string | null {
+    return this.authState.getToken();
   }
 }

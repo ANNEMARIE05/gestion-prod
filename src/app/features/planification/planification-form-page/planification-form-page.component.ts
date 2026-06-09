@@ -7,6 +7,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ProductionType } from '../../../models/production';
 import { PlanificationService } from '../../../services/planification.service';
 import { PlanTask, PlanTaskInput } from '../../../models/plan-task';
+import { planificationListRoute } from '../../../utils/app-routes';
 import { PlanificationFormComponent } from '../planification-form/planification-form.component';
 
 @Component({
@@ -91,15 +92,6 @@ export class PlanificationFormPageComponent implements OnInit {
   }
 
   private routeForType(type: ProductionType): string {
-    switch (type) {
-      case 'AUDIT':
-        return '/planification/audits';
-      case 'ENGINEERING':
-        return '/planification/veille';
-      case 'MONITORING':
-        return '/planification/monitoring';
-      default:
-        return '/planification/projets';
-    }
+    return planificationListRoute(type);
   }
 }
